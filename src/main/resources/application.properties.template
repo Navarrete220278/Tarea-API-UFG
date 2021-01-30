@@ -1,0 +1,15 @@
+# JPA properties
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=
+spring.jpa.show-sql=
+spring.jpa.properties.hibernate.dialect=
+spring.jpa.properties.hibernate.format_sql=
+
+# AWS properties
+aws.sdk.accessKey=
+aws.sdk.secretKey=
+aws.sdk.region=
+aws.s3.bucket.name=
+aws.s3.bucket.app-folder=
