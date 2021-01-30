@@ -44,7 +44,7 @@ public class CategoriaController {
     }
 
     @PostMapping(
-            path = "/{idCategoria}/image",
+            path = "/{idCategoria}/imagen",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -53,12 +53,12 @@ public class CategoriaController {
         categoriaService.subirImagenCategoria(idCategoria, archivo);
     }
 
-    @GetMapping(path = "/{idCategoria}/image")
+    @GetMapping(path = "/{idCategoria}/imagen")
     public byte[] descargarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
         return categoriaService.descargarImagenCategoria(idCategoria);
     }
 
-    @DeleteMapping(path = "/{idCategoria}/image")
+    @DeleteMapping(path = "/{idCategoria}/imagen")
     public void borrarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
         categoriaService.borrarImagenCategoria(idCategoria);
     }

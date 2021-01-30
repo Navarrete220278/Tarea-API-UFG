@@ -1,6 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,6 +22,7 @@ public class OrdenHistorial {
     @Id
     @SequenceGenerator(name = "orden_historial_id_seq", sequenceName = "orden_historial_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "orden_historial_id_seq")
+    @JsonIgnore
     private Long id;
 
     @ManyToOne
@@ -34,6 +35,10 @@ public class OrdenHistorial {
     @NotNull
     @Column(nullable = false)
     private Estado estado;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     private String comentarios;
 }

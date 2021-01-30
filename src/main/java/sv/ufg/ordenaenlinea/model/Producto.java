@@ -1,7 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,5 +39,6 @@ public class Producto {
     private BigDecimal precio;
 
     @OneToMany(mappedBy = "producto")
+    @JsonIgnore
     private Set<OrdenDetalle> detalles;
 }

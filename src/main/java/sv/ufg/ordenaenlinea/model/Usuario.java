@@ -1,8 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,15 +41,24 @@ public class Usuario {
 
     private String telefono;
 
+    @NotNull
     @Column(nullable = false)
     private Boolean emailConfirmado;
 
-    @Column(nullable = false)
     private Boolean telefonoConfirmado;
+
+    @NotNull
+    @Column(nullable = false)
+    private Long versionToken;
 
     @OneToMany(mappedBy = "usuario")
     private Set<UsuarioRol> roles;
 
     @OneToMany(mappedBy = "usuario")
+    @JsonIgnore
     private Set<Orden> ordenes;
+
+    @OneToMany(mappedBy = "usuario")
+    @JsonIgnore
+    private Set<OrdenHistorial> historial;
 }

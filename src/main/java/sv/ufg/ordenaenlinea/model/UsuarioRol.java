@@ -1,6 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,11 +18,12 @@ public class UsuarioRol {
     @Id
     @SequenceGenerator(name = "usuario_rol_id_seq", sequenceName = "usuario_rol_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuario_rol_id_seq")
+    @JsonIgnore
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     private Usuario usuario;
 
     @Enumerated(EnumType.STRING)

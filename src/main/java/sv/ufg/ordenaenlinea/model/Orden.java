@@ -1,8 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +20,6 @@ public class Orden {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
-    @JsonBackReference
     private Usuario usuario;
 
     @NotNull
@@ -42,5 +39,6 @@ public class Orden {
     private Set<OrdenDetalle> detalles;
 
     @OneToMany(mappedBy = "orden")
+    @JsonIgnore
     private Set<OrdenHistorial> historial;
 }
