@@ -1,39 +1,41 @@
 package sv.ufg.ordenaenlinea.service;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
+import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
+import sv.ufg.ordenaenlinea.util.ArchivoUtil;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import javax.validation.ValidationException;
 import java.io.IOException;
 import java.util.*;
-
-import static org.apache.http.entity.ContentType.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class CategoriaService {
     private final CategoriaRepository categoriaRepository;
     private final Logger logger = LoggerFactory.getLogger(CategoriaService.class);
     private final String carpeta = "categoria";
-    private final ArchivoService archivoService;
+    private final ArchivoRepository archivoRepository;
+    private final ArchivoUtil archivoUtil;
 
-    @Autowired
-    public CategoriaService(CategoriaRepository categoriaRepository, ArchivoService archivoService) {
-        this.categoriaRepository = categoriaRepository;
-        this.archivoService = archivoService;
+    public Page<Categoria> obtenerCategorias(Integer page, Integer size) {
+        Pageable pagina = PageRequest.of(page, size);
+        Page<Categoria> categorias = categoriaRepository.findAll(pagina);
+        return categorias;
     }
 
-    public List<Categoria> obtenerCategorias() {
-        return categoriaRepository.findAll();
-    }
-
-    public Categoria agregarCategoria(Categoria categoria) throws EntityExistsException {
+    public Categoria crearCategoria(Categoria categoria) throws EntityExistsException {
         lanzarExcepcionSiNombreDuplicado(categoria.getNombre());
 
         // Si el cliente provee una URL de imagen, ignorar el cambio, ya que se
@@ -44,8 +46,8 @@ public class CategoriaService {
         return categoriaRepository.save(categoria);
     }
 
-    public Categoria modificarCategoria(Integer idCategoria, Categoria nuevaCategoria)
-            throws EntityNotFoundException, EntityExistsException, IllegalArgumentException {
+    public Categoria actualizarCategoria(Integer idCategoria, Categoria nuevaCategoria)
+            throws EntityNotFoundException, EntityExistsException {
 
         // Obtener categoria actual de la BD
         Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
@@ -70,40 +72,34 @@ public class CategoriaService {
 
         // Si la categoria tiene una imagen, borrarla del bucket, para prevenir imagenes huérfanas
         if (categoria.getUrlImagen() != null)
-            archivoService.borrar(carpeta, categoria.getUrlImagen());
+            archivoRepository.borrar(carpeta, categoria.getUrlImagen());
 
         categoriaRepository.deleteById(idCategoria);
     }
 
-    public void subirImagenCategoria(Integer idCategoria, MultipartFile archivo)
+    public void actualizarImagenCategoria(Integer idCategoria, MultipartFile archivo)
             throws IllegalArgumentException, IOException {
         // 1. Comprobar que la imagen no este vacia
-        esImagenVacia(archivo);
+        archivoUtil.esImagenVacia(archivo);
 
         // 2. If file is an image
-        esImagen(archivo);
+        archivoUtil.esImagen(archivo);
 
-        // 3. The user exists in our database
+        // 3. Grab some metadata from file
+        Map<String, String> metadata = archivoUtil.extraerMetadata(archivo);
+
+        // 4. The category exists in our database
         Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
 
-        // 4. Grab some metadata from file
-        Map<String, String> metadata = extraerMetadata(archivo);
+        // 5. Store the image in S3 and return the new s3 image link
+        String urlNueva = subirOReemplazarImagen(categoria.getUrlImagen(), archivo, metadata);
 
-        // 5. Get the current image URL
-        String imagenAnterior = categoria.getUrlImagen();
-
-        // 6. Store the image in S3 and update database (userProfileImageLink) with s3 image link
-        String nombreArchivo = obtenerNuevoNombreArchivo(archivo);
-        archivoService.subir(carpeta, nombreArchivo, Optional.of(metadata), archivo.getInputStream());
-        categoria.setUrlImagen(nombreArchivo);
+        // 6. Update the image URL
+        categoria.setUrlImagen(urlNueva);
         categoriaRepository.save(categoria);
-
-        // 7. Delete the previous image in the bucket
-        if (imagenAnterior != null)
-            archivoService.borrar(carpeta, imagenAnterior);
     }
 
-    public byte[] descargarImagenCategoria(Integer idCategoria) throws IOException {
+    public byte[] obtenerImagenCategoria(Integer idCategoria) throws IOException {
         Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
         String urlImagen = categoria.getUrlImagen();
 
@@ -111,7 +107,7 @@ public class CategoriaService {
         if (urlImagen == null || urlImagen.isBlank())
             return new byte[0];
 
-        return archivoService.descargar(carpeta, urlImagen);
+        return archivoRepository.descargar(carpeta, urlImagen);
     }
 
     public void borrarImagenCategoria(Integer idCategoria) throws IOException {
@@ -122,49 +118,32 @@ public class CategoriaService {
         if (urlImagen == null || urlImagen.isBlank())
             return;
 
-        archivoService.borrar(carpeta, urlImagen);
+        archivoRepository.borrar(carpeta, urlImagen);
         categoria.setUrlImagen(null);
         categoriaRepository.save(categoria);
     }
 
+    private String subirOReemplazarImagen(String urlAnterior,
+                                          MultipartFile archivo,
+                                          Map<String, String> metadata) throws IOException {
+
+        String urlNueva = archivoUtil.obtenerNuevoNombreArchivo(archivo);
+
+        archivoRepository.subir(carpeta, urlNueva, Optional.of(metadata), archivo.getInputStream());
+
+        if (urlAnterior != null)
+            archivoRepository.borrar(carpeta, urlAnterior);
+
+        return urlNueva;
+    }
+
     private void lanzarExcepcionSiNombreDuplicado(String nombreCategoria) throws EntityExistsException {
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findCategoriaByNombre(nombreCategoria);
+        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(nombreCategoria);
         if (categoriaHomonima.isPresent())
             throw new EntityExistsException(String.format("La categoría '%s' ya existe", nombreCategoria));
     }
 
-    private String obtenerNuevoNombreArchivo(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        String filename = String.format("%s.%s", UUID.randomUUID().toString(), fileExtension);
-        return filename;
-    }
-
-    private Map<String, String> extraerMetadata(MultipartFile archivo) {
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("Content-Type", archivo.getContentType());
-        metadata.put("Content-Length", String.valueOf(archivo.getContentType()));
-        return metadata;
-    }
-
-    private void esImagen(MultipartFile archivo) throws IllegalArgumentException {
-        String tipoContenido = archivo.getContentType();
-        if (!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType(), IMAGE_GIF.getMimeType())
-                .contains(tipoContenido)) {
-            throw new IllegalArgumentException(String.format("El archivo debe ser una imagen [%s]", tipoContenido));
-        }
-    }
-
-    private void esImagenVacia(MultipartFile archivo) throws IllegalArgumentException {
-        if (archivo.isEmpty()) {
-            throw new IllegalArgumentException(
-                    String.format("No se puede subir un archivo vacio [%d]",
-                    archivo.getSize())
-            );
-        }
-    }
-
-    private Categoria obtenerCategoriaOLanzarExcepcion(Integer idCategoria) {
+    private Categoria obtenerCategoriaOLanzarExcepcion(Integer idCategoria) throws EntityNotFoundException {
         return categoriaRepository.findById(idCategoria)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Categoria %s no existe", idCategoria)));
     }

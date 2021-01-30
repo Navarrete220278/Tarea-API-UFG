@@ -1,4 +1,4 @@
-package sv.ufg.ordenaenlinea.service;
+package sv.ufg.ordenaenlinea.repository;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -10,24 +10,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-public class ArchivoService {
+@Repository
+public class ArchivoRepository {
     @Value("${aws.s3.bucket.name}")
     private String bucketName;
     @Value("${aws.s3.bucket.app-folder}")
     private String appFolder;
     private final AmazonS3 s3;
-    private final Logger logger = LoggerFactory.getLogger(ArchivoService.class);
+    private final Logger logger = LoggerFactory.getLogger(ArchivoRepository.class);
 
     @Autowired
-    public ArchivoService(AmazonS3 s3) {
+    public ArchivoRepository(AmazonS3 s3) {
         this.s3 = s3;
     }
 
@@ -67,20 +67,10 @@ public class ArchivoService {
         }
     }
 
-    public boolean existe(String carpetaDestino, String nombreArchivo) throws IOException {
-        try {
-            String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivo);
-            return s3.doesObjectExist(bucketName, llave);
-        } catch (AmazonServiceException e) {
-            String mensajeError = String.format("No se pudo determinar si el archivo %s existe", nombreArchivo);
-            logger.error(mensajeError, e);
-            throw new IOException(mensajeError);
-        }
-    }
-
     public void borrar(String carpetaDestino, String nombreArchivo) throws IOException {
         try {
             String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivo);
+            // Borrar el elemento
             s3.deleteObject(bucketName, llave);
         } catch (AmazonServiceException e) {
             String mensajeError = String.format("No se pudo borrar el archivo %s", nombreArchivo);

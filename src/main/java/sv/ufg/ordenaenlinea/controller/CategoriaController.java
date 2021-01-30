@@ -1,6 +1,7 @@
 package sv.ufg.ordenaenlinea.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,56 +10,53 @@ import sv.ufg.ordenaenlinea.service.CategoriaService;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/categoria")
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class CategoriaController {
     private final CategoriaService categoriaService;
 
-    @Autowired
-    public CategoriaController(CategoriaService categoriaService) {
-        this.categoriaService = categoriaService;
+    @GetMapping("/categorias")
+    public Page<Categoria> obtenerCategorias(@RequestParam(name = "page", defaultValue = "0") Integer page,
+                                              @RequestParam(name = "size", defaultValue = "10") Integer size
+    ) {
+        return categoriaService.obtenerCategorias(page, size);
     }
 
-    @GetMapping
-    public List<Categoria> obtenerCategorias() {
-        return categoriaService.obtenerCategorias();
+    @GetMapping(path = "/categorias/{idCategoria}/imagen")
+    public byte[] obtenerImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
+        return categoriaService.obtenerImagenCategoria(idCategoria);
     }
 
-    @PostMapping
-    public void agregarCategoria(@Valid @RequestBody Categoria categoria) {
-        categoriaService.agregarCategoria(categoria);
+    @PostMapping("/categorias")
+    public void crearCategoria(@Valid @RequestBody Categoria categoria) {
+        categoriaService.crearCategoria(categoria);
     }
 
-    @PutMapping("/{idCategoria}")
-    public void modificarCategoria(
+    @PutMapping("/categorias/{idCategoria}")
+    public void actualizarCategoria(
             @PathVariable("idCategoria") Integer idCategoria,
             @Valid @RequestBody Categoria categoria) {
-        categoriaService.modificarCategoria(idCategoria, categoria);
+        categoriaService.actualizarCategoria(idCategoria, categoria);
     }
 
-    @DeleteMapping("/{idCategoria}")
+    @PutMapping(
+            path = "/categorias/{idCategoria}/imagen",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public void actualizarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria,
+                                     @RequestParam("archivo") MultipartFile archivo) throws IOException {
+        categoriaService.actualizarImagenCategoria(idCategoria, archivo);
+    }
+
+    @DeleteMapping("/categorias/{idCategoria}")
     public void borrarCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
         categoriaService.borrarCategoria(idCategoria);
     }
 
-    @PostMapping(
-            path = "/{idCategoria}/imagen",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public void subirImagenCategoria(@PathVariable("idCategoria") Integer idCategoria,
-                                     @RequestParam("archivo") MultipartFile archivo) throws IOException {
-        categoriaService.subirImagenCategoria(idCategoria, archivo);
-    }
-
-    @GetMapping(path = "/{idCategoria}/imagen")
-    public byte[] descargarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
-        return categoriaService.descargarImagenCategoria(idCategoria);
-    }
-
-    @DeleteMapping(path = "/{idCategoria}/imagen")
+    @DeleteMapping(path = "/categorias/{idCategoria}/imagen")
     public void borrarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) throws IOException {
         categoriaService.borrarImagenCategoria(idCategoria);
     }
