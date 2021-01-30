@@ -1,5 +1,7 @@
 package sv.ufg.ordenaenlinea.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +11,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Table(uniqueConstraints = {
@@ -35,4 +38,7 @@ public class Producto {
     @DecimalMin(value = "0.01")
     @Column(nullable = false)
     private BigDecimal precio;
+
+    @OneToMany(mappedBy = "producto")
+    private Set<OrdenDetalle> detalles;
 }

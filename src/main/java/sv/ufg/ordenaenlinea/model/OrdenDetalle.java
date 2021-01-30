@@ -1,5 +1,6 @@
 package sv.ufg.ordenaenlinea.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,10 @@ public class OrdenDetalle {
     @ManyToOne
     @JoinColumn(name = "orden_id", nullable = false)
     private Orden orden;
+
+    @ManyToOne
+    @JoinColumn(name = "producto_id", nullable = false)
+    private Producto producto;
 
     @NotNull
     @Min(value = 1)
