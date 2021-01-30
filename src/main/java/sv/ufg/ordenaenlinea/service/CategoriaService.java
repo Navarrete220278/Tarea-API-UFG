@@ -48,10 +48,7 @@ public class CategoriaService {
             throws EntityNotFoundException, EntityExistsException, IllegalArgumentException {
 
         // Obtener categoria actual de la BD
-        Categoria categoria = categoriaRepository.findById(idCategoria)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("La categoría con id %s no existe", idCategoria)
-                ));
+        Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
 
         // Si el usuario no esta modificando el nombre, no realizar ninguna accion
         if (Objects.equals(categoria.getNombre(), nuevaCategoria.getNombre())) return categoria;
@@ -87,23 +84,21 @@ public class CategoriaService {
         esImagen(archivo);
 
         // 3. The user exists in our database
-        Optional<Categoria> categoria = categoriaRepository.findById(idCategoria);
-        if (!categoria.isPresent())
-            throw new EntityNotFoundException(String.format("La categoria %s no existe", idCategoria));
+        Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
 
         // 4. Grab some metadata from file
         Map<String, String> metadata = extraerMetadata(archivo);
 
         // 5. Get the current image URL
-        String imagenAnterior = categoria.get().getUrlImagen();
+        String imagenAnterior = categoria.getUrlImagen();
 
         // 6. Store the image in S3 and update database (userProfileImageLink) with s3 image link
         String nombreArchivo = obtenerNuevoNombreArchivo(archivo);
         archivoService.subir(carpeta, nombreArchivo, Optional.of(metadata), archivo.getInputStream());
-        categoria.get().setUrlImagen(nombreArchivo);
-        categoriaRepository.save(categoria.get());
+        categoria.setUrlImagen(nombreArchivo);
+        categoriaRepository.save(categoria);
 
-        // 7. Borrar la imagen anterior del bucket
+        // 7. Delete the previous image in the bucket
         if (imagenAnterior != null)
             archivoService.borrar(carpeta, imagenAnterior);
     }
