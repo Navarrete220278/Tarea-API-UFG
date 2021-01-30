@@ -34,7 +34,7 @@ public class CategoriaService {
     }
 
     public Categoria agregarCategoria(Categoria categoria) throws EntityExistsException {
-        lanzarExcepcionSiNombreDuplicado(categoria);
+        lanzarExcepcionSiNombreDuplicado(categoria.getNombre());
 
         // Si el cliente provee una URL de imagen, ignorar el cambio, ya que se
         // debe invocar subirImagenCategoria por separado
@@ -44,38 +44,36 @@ public class CategoriaService {
         return categoriaRepository.save(categoria);
     }
 
-    public Categoria modificarCategoria(Integer idCategoria, Categoria categoria)
+    public Categoria modificarCategoria(Integer idCategoria, Categoria nuevaCategoria)
             throws EntityNotFoundException, EntityExistsException, IllegalArgumentException {
-        lanzarExcepcionSiIdCategoriaDifiereDeCategoria(idCategoria, categoria);
-        lanzarExcepcionSiNombreDuplicado(categoria);
 
         // Obtener categoria actual de la BD
-        Optional<Categoria> categoriaOptional = categoriaRepository.findById(idCategoria);
+        Categoria categoria = categoriaRepository.findById(idCategoria)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("La categoría con id %s no existe", idCategoria)
+                ));
 
-        // Lanzar una excepcion si no existe una categoria con este ID
-        if (categoriaOptional.isEmpty())
-            throw new EntityNotFoundException(String.format("La categoría con id %s no existe", idCategoria));
+        // Si el usuario no esta modificando el nombre, no realizar ninguna accion
+        if (Objects.equals(categoria.getNombre(), nuevaCategoria.getNombre())) return categoria;
 
-        // Si el usuario trata de actualizar la URL, ignorar el cambio (se debe invocar a subirImagenCategoria)
-        if (!Objects.equals(categoria.getUrlImagen(), categoriaOptional.get().getUrlImagen()))
-            categoria.setUrlImagen(categoriaOptional.get().getUrlImagen());
+        // Verificar que no exista una categoria con el mismo nombre en la BD
+        lanzarExcepcionSiNombreDuplicado(nuevaCategoria.getNombre());
+        categoria.setNombre(nuevaCategoria.getNombre());
 
-        // Guardar cambios
         return categoriaRepository.save(categoria);
     }
 
     public void borrarCategoria(Integer idCategoria)
             throws EntityNotFoundException, IOException {
         // Obtener categoria actual de la BD
-        Optional<Categoria> categoriaOptional = categoriaRepository.findById(idCategoria);
-
-        // Lanzar una excepcion si no existe una categoria con este ID
-        if (categoriaOptional.isEmpty())
-            throw new EntityNotFoundException(String.format("La categoría con id %s no existe", idCategoria));
+        Categoria categoria = categoriaRepository.findById(idCategoria)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("La categoría con id %s no existe", idCategoria)
+                ));
 
         // Si la categoria tiene una imagen, borrarla del bucket, para prevenir imagenes huérfanas
-        if (categoriaOptional.get().getUrlImagen() != null)
-            archivoService.borrar(carpeta, categoriaOptional.get().getUrlImagen());
+        if (categoria.getUrlImagen() != null)
+            archivoService.borrar(carpeta, categoria.getUrlImagen());
 
         categoriaRepository.deleteById(idCategoria);
     }
@@ -121,15 +119,23 @@ public class CategoriaService {
         return archivoService.descargar(carpeta, urlImagen);
     }
 
-    private void lanzarExcepcionSiIdCategoriaDifiereDeCategoria(Integer idCategoria, Categoria categoria) {
-        if (!Objects.equals(idCategoria, categoria.getId()))
-            throw new IllegalArgumentException(String.format("El id %s no corresponde a la categoria", idCategoria));
+    public void borrarImagenCategoria(Integer idCategoria) throws IOException {
+        Categoria categoria = obtenerCategoriaOLanzarExcepcion(idCategoria);
+        String urlImagen = categoria.getUrlImagen();
+
+        // Si el campo esta vacio, no realizar ninguna accion
+        if (urlImagen == null || urlImagen.isBlank())
+            return;
+
+        archivoService.borrar(carpeta, urlImagen);
+        categoria.setUrlImagen(null);
+        categoriaRepository.save(categoria);
     }
 
-    private void lanzarExcepcionSiNombreDuplicado(Categoria categoria) throws EntityExistsException {
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findCategoriaByNombre(categoria.getNombre());
+    private void lanzarExcepcionSiNombreDuplicado(String nombreCategoria) throws EntityExistsException {
+        Optional<Categoria> categoriaHomonima = categoriaRepository.findCategoriaByNombre(nombreCategoria);
         if (categoriaHomonima.isPresent())
-            throw new EntityExistsException(String.format("La categoría '%s' ya existe", categoria.getNombre()));
+            throw new EntityExistsException(String.format("La categoría '%s' ya existe", nombreCategoria));
     }
 
     private String obtenerNuevoNombreArchivo(MultipartFile file) {
