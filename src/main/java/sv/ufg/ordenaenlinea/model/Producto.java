@@ -38,6 +38,10 @@ public class Producto {
     @Column(nullable = false)
     private BigDecimal precio;
 
+    @NotNull
+    @Column(nullable = false)
+    private Integer puntaje;
+
     @OneToMany(mappedBy = "producto")
     @JsonIgnore
     private Set<OrdenDetalle> detalles;
