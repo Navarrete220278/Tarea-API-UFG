@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,7 +55,7 @@ public class ArchivoRepository {
         }
     }
 
-    public byte[] descargar(String carpetaDestino, String nombreArchivo) throws IOException {
+    public byte[] descargar(String carpetaDestino, String nombreArchivo) {
         try {
             String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivo);
             S3Object s3Object = s3.getObject(bucketName, llave);
@@ -63,11 +64,11 @@ public class ArchivoRepository {
         } catch (AmazonServiceException | IOException e) {
             String mensajeError = String.format("No se pudo descargar el archivo %", nombreArchivo);
             logger.error(mensajeError, e);
-            throw new IOException(mensajeError);
+            throw new IllegalStateException(mensajeError);
         }
     }
 
-    public void borrar(String carpetaDestino, String nombreArchivo) throws IOException {
+    public void borrar(String carpetaDestino, String nombreArchivo) {
         try {
             String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivo);
             // Borrar el elemento
@@ -75,7 +76,7 @@ public class ArchivoRepository {
         } catch (AmazonServiceException e) {
             String mensajeError = String.format("No se pudo borrar el archivo %s", nombreArchivo);
             logger.error(mensajeError, e);
-            throw new IOException(mensajeError);
+            throw new UncheckedIOException(new IOException(mensajeError));
         }
     }
 

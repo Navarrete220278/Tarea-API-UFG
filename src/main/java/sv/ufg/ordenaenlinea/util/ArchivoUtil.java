@@ -26,7 +26,7 @@ public class ArchivoUtil {
         return metadata;
     }
 
-    public void esImagen(MultipartFile archivo) throws IllegalArgumentException {
+    public void esImagen(MultipartFile archivo) {
         String tipoContenido = archivo.getContentType();
         if (!Arrays.asList(IMAGE_JPEG.getMimeType(), IMAGE_PNG.getMimeType(), IMAGE_GIF.getMimeType())
                 .contains(tipoContenido)) {
@@ -34,7 +34,7 @@ public class ArchivoUtil {
         }
     }
 
-    public void esImagenVacia(MultipartFile archivo) throws IllegalArgumentException {
+    public void esArchivoNoVacio(MultipartFile archivo) {
         if (archivo.isEmpty()) {
             throw new IllegalArgumentException(
                     String.format("No se puede subir un archivo vacio [%d]",

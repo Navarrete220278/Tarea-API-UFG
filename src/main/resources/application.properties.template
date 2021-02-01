@@ -13,3 +13,6 @@ aws.sdk.secretKey=
 aws.sdk.region=
 aws.s3.bucket.name=
 aws.s3.bucket.app-folder=
+
+# File upload properties
+spring.servlet.multipart.max-file-size=

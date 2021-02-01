@@ -25,14 +25,15 @@ public class Categoria {
     @Column(nullable = false)
     private String nombre;
 
-    @NotNull
-    @Column(nullable = false)
-    private Integer puntaje;
-
     @JsonIgnore
     private String urlImagen;
 
     @OneToMany(mappedBy = "categoria")
     @JsonIgnore
     private Set<Producto> productos;
+
+    public Categoria(String nombre, String urlImagen) {
+        this.nombre = nombre;
+        this.urlImagen = urlImagen;
+    }
 }

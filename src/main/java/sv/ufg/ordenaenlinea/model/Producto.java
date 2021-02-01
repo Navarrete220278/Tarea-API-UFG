@@ -27,6 +27,7 @@ public class Producto {
     @Column(nullable = false)
     private String nombre;
 
+    @JsonIgnore
     private String urlImagen;
 
     @ManyToOne
@@ -38,11 +39,13 @@ public class Producto {
     @Column(nullable = false)
     private BigDecimal precio;
 
-    @NotNull
-    @Column(nullable = false)
-    private Integer puntaje;
-
     @OneToMany(mappedBy = "producto")
     @JsonIgnore
     private Set<OrdenDetalle> detalles;
+
+    public Producto(String nombre, Categoria categoria, BigDecimal precio) {
+        this.nombre = nombre;
+        this.categoria = categoria;
+        this.precio = precio;
+    }
 }
