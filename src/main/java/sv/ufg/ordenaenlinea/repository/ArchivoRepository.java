@@ -6,9 +6,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class ArchivoRepository {
     @Value("${aws.s3.bucket.name}")
     private String bucketName;
@@ -26,11 +27,6 @@ public class ArchivoRepository {
     private String appFolder;
     private final AmazonS3 s3;
     private final Logger logger = LoggerFactory.getLogger(ArchivoRepository.class);
-
-    @Autowired
-    public ArchivoRepository(AmazonS3 s3) {
-        this.s3 = s3;
-    }
 
     public void subir(String carpetaDestino,
                       String nombreArchivo,

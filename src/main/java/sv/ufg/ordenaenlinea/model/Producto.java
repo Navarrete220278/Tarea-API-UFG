@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sv.ufg.ordenaenlinea.request.ProductoRequest;
 
 import javax.persistence.*;
 import javax.validation.constraints.DecimalMin;
@@ -43,9 +44,10 @@ public class Producto {
     @JsonIgnore
     private Set<OrdenDetalle> detalles;
 
-    public Producto(String nombre, Categoria categoria, BigDecimal precio) {
-        this.nombre = nombre;
-        this.categoria = categoria;
-        this.precio = precio;
+    public static Producto of(ProductoRequest productoRequest) {
+        Producto nuevoProducto = new Producto();
+        nuevoProducto.setNombre(productoRequest.getNombre());
+        nuevoProducto.setPrecio(productoRequest.getPrecio());
+        return nuevoProducto;
     }
 }

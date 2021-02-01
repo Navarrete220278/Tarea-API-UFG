@@ -8,61 +8,63 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
+import sv.ufg.ordenaenlinea.request.CategoriaRequest;
 import sv.ufg.ordenaenlinea.service.CategoriaService;
 
 import javax.validation.Valid;
 
 @RestController
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class CategoriaController {
     private final CategoriaService categoriaService;
 
-    @GetMapping("/api/v1/categorias")
+    @GetMapping("/categorias")
     public Page<Categoria> obtenerCategorias(Pageable pageable) {
         return categoriaService.obtenerCategorias(pageable);
     }
 
-    @GetMapping("/api/v1/categorias/{id}")
-    public Categoria obtenerCategoriasPorId(@PathVariable("id") Integer idCategoria) {
+    @GetMapping("/categorias/{idCategoria}")
+    public Categoria obtenerCategoriasPorId(@PathVariable("idCategoria") Integer idCategoria) {
         return categoriaService.obtenerCategoriaPorId(idCategoria);
     }
 
-    @GetMapping("/api/v1/categorias/{id}/imagen")
-    public byte[] obtenerImagenCategoria(@PathVariable("id") Integer idCategoria) {
+    @GetMapping("/categorias/{idCategoria}/imagen")
+    public byte[] obtenerImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) {
         return categoriaService.obtenerImagenCategoria(idCategoria);
     }
 
-    @PostMapping("/api/v1/categorias")
+    @PostMapping("/categorias")
     @ResponseStatus(HttpStatus.CREATED)
-    public Categoria crearCategoria(@Valid @RequestBody Categoria categoria) {
-        return categoriaService.postearCategoria(categoria);
+    public Categoria crearCategoria(@Valid @RequestBody CategoriaRequest categoriaRequest) {
+        return categoriaService.postearCategoria(categoriaRequest);
     }
 
-    @PutMapping("/api/v1/categorias/{id}")
-    public Categoria modificarCategoria(@PathVariable("id") Integer idCategoria,
-                                        @Valid @RequestBody Categoria categoria) {
-        return categoriaService.modificarCategoria(idCategoria, categoria);
+    @PutMapping("/categorias/{idCategoria}")
+    public Categoria modificarCategoria(@PathVariable("idCategoria") Integer idCategoria,
+                                        @RequestBody CategoriaRequest categoriaRequest) {
+        return categoriaService.modificarCategoria(idCategoria, categoriaRequest);
     }
 
     @PutMapping(
-            value = "/api/v1/categorias/{id}/imagen",
+            value = "/categorias/{idCategoria}/imagen",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public void modificarImagenCategoria(@PathVariable("id") Integer idCategoria,
+    public void modificarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria,
                                          @RequestParam("archivo") MultipartFile archivo) {
         categoriaService.modificarImagenCategoria(idCategoria, archivo);
     }
 
-    @DeleteMapping("/api/v1/categorias/{id}")
+    @DeleteMapping("/categorias/{idCategoria}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void borrarCategoria(@PathVariable("id") Integer idCategoria) {
+    public void borrarCategoria(@PathVariable("idCategoria") Integer idCategoria) {
         categoriaService.borrarCategoria(idCategoria);
     }
 
-    @DeleteMapping("/api/v1/categorias/{id}/imagen")
+    @DeleteMapping("/categorias/{idCategoria}/imagen")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void borrarImagenCategoria(@PathVariable("id") Integer idCategoria) {
+    public void borrarImagenCategoria(@PathVariable("idCategoria") Integer idCategoria) {
         categoriaService.borrarImagenCategoria(idCategoria);
     }
 }

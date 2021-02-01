@@ -1,11 +1,10 @@
 package sv.ufg.ordenaenlinea.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,14 +22,12 @@ import java.util.Map;
 
 @ControllerAdvice
 public class ExceptionHelper {
-//    private static final Logger logger = LoggerFactory.getLogger(ExceptionHelper.class);
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxUploadSize;
 
     @ExceptionHandler(value = {PropertyReferenceException.class})
     public ResponseEntity<ExceptionWrapper> handleBadRequest (
             RuntimeException ex, HttpServletRequest request) {
-        logError(ex, request);
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         return buildValidationResponse(request, status, ex.getMessage(), new ArrayList<>());
@@ -48,17 +45,23 @@ public class ExceptionHelper {
         return buildResponse(ex, request, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(value = {HttpMessageNotReadableException.class})
+    public ResponseEntity<ExceptionWrapper> handleMessageNotReadable (
+            RuntimeException ex, HttpServletRequest request) {
+            return buildResponse(ex, request, HttpStatus.BAD_REQUEST,
+                    "Error de interpretación de JSON");
+    }
+
     @ExceptionHandler(value = {MaxUploadSizeExceededException.class})
     public ResponseEntity<ExceptionWrapper> handlePayloadTooLarge (
             MaxUploadSizeExceededException ex, HttpServletRequest request) {
-            return buildResponse(ex, request, HttpStatus.PAYLOAD_TOO_LARGE,
-                    String.format("Tamaño de archivo excede el maximo permitido es %s", maxUploadSize));
+        return buildResponse(ex, request, HttpStatus.PAYLOAD_TOO_LARGE,
+                String.format("Tamaño de archivo excede el maximo permitido es %s", maxUploadSize));
     }
 
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionWrapper> handleValidation (
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        logError(ex, request);
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         BindingResult result = ex.getBindingResult();
@@ -106,7 +109,6 @@ public class ExceptionHelper {
                                                            HttpServletRequest request,
                                                            HttpStatus status,
                                                            String message) {
-        logError(ex, request);
 
         ExceptionWrapper wrapper = new ExceptionWrapper(
                 status.value(),
@@ -115,14 +117,5 @@ public class ExceptionHelper {
         );
 
         return new ResponseEntity<>(wrapper, status);
-    }
-
-    private void logError(Throwable ex, HttpServletRequest request) {
-//        String queryString = request.getQueryString();
-//        logger.error(String.format("%s: %s", ex.getClass().getSimpleName(), ex.getMessage()));
-//        logger.error(String.format("%s: %s%s",
-//                request.getMethod(),
-//                request.getRequestURL().toString(),
-//                queryString == null ? "" : "?" + queryString));
     }
 }

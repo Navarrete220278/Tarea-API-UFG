@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sv.ufg.ordenaenlinea.request.CategoriaRequest;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -32,8 +33,9 @@ public class Categoria {
     @JsonIgnore
     private Set<Producto> productos;
 
-    public Categoria(String nombre, String urlImagen) {
-        this.nombre = nombre;
-        this.urlImagen = urlImagen;
+    public static Categoria of(CategoriaRequest categoriaRequest) {
+        Categoria nuevaCategoria = new Categoria();
+        nuevaCategoria.setNombre(categoriaRequest.getNombre());
+        return nuevaCategoria;
     }
 }

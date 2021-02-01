@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
 import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
+import sv.ufg.ordenaenlinea.request.CategoriaRequest;
 import sv.ufg.ordenaenlinea.util.ArchivoUtil;
 
 import javax.persistence.EntityExistsException;
@@ -49,32 +50,40 @@ public class CategoriaService {
             return archivoRepository.descargar(CARPETA, categoria.getUrlImagen());
     }
 
-    public Categoria postearCategoria(Categoria categoria) {
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoria.getNombre());
+    public Categoria postearCategoria(CategoriaRequest categoriaRequest) {
+        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoriaRequest.getNombre());
         if (categoriaHomonima.isPresent())
-            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoria.getNombre()));
+            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoriaRequest.getNombre()));
 
-        return categoriaRepository.save(categoria);
+        return categoriaRepository.save(Categoria.of(categoriaRequest));
     }
 
-    public Categoria modificarCategoria(Integer idCategoria, Categoria categoria) {
-        Categoria categoriaAModificar = categoriaRepository.findById(idCategoria).orElseThrow(
+    public Categoria modificarCategoria(Integer idCategoria, CategoriaRequest categoriaRequest) {
+        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
                 () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
         );
 
         // Si el nombre no ha sido modificado, no realizar ninguna acción
-        if (Objects.equals(categoria.getNombre(), categoriaAModificar.getNombre()))
-            return categoriaAModificar;
+        boolean nombreSinCambios = categoriaRequest.getNombre() == null || categoriaRequest.getNombre().isBlank()
+                || Objects.equals(categoriaRequest.getNombre(), categoria.getNombre());
+        if (nombreSinCambios) return categoria;
 
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoria.getNombre());
+        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoriaRequest.getNombre());
         if (categoriaHomonima.isPresent())
-            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoria.getNombre()));
+            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoriaRequest.getNombre()));
 
-        categoriaAModificar.setNombre(categoria.getNombre());
-        return categoriaRepository.save(categoriaAModificar);
+        categoria.setNombre(categoriaRequest.getNombre());
+        return categoriaRepository.save(categoria);
     }
 
     public void modificarImagenCategoria(Integer idCategoria, MultipartFile archivo) {
+        /*
+         TODO: calculate a hash of the multipart and save it into the database.
+          The next time a user submits an image, compare the hash of the new image
+          with the saved hash and, if it is the same, return immediately to avoid
+          calling the S3 API to process the same file multiple times
+        */
+
         // Validaciones
         archivoUtil.esArchivoNoVacio(archivo);
         archivoUtil.esImagen(archivo);
@@ -108,7 +117,7 @@ public class CategoriaService {
     }
 
     public void borrarCategoria(Integer idCategoria) {
-        // Obtener categoría a actualizar. De no existir, no realizar ninguna accion (DELETE is idempotent)
+        // Obtener categoría a borrar. De no existir, no realizar ninguna accion (DELETE is idempotent)
         Optional<Categoria> categoria = categoriaRepository.findById(idCategoria);
         if (categoria.isEmpty()) return;
 
@@ -124,7 +133,7 @@ public class CategoriaService {
     }
 
     public void borrarImagenCategoria(Integer idCategoria) {
-        // Obtener categoría a actualizar. De no existir, no realizar ninguna accion (DELETE is idempotent)
+        // Obtener categoría a borrar. De no existir, no realizar ninguna accion (DELETE is idempotent)
         Optional<Categoria> categoria = categoriaRepository.findById(idCategoria);
         if (categoria.isEmpty()) return;
 
