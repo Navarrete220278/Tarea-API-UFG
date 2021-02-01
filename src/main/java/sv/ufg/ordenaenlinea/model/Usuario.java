@@ -33,6 +33,9 @@ public class Usuario {
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
+    private String urlImagen;
+
     @NotBlank
     @Email
     @Column(nullable = false)
