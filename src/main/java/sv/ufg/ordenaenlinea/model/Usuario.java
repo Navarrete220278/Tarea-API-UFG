@@ -30,6 +30,7 @@ public class Usuario {
     @NotBlank
     @Column(nullable = false)
     @Size(min = 6)
+    @JsonIgnore
     private String password;
 
     @NotBlank

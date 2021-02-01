@@ -42,4 +42,6 @@ public class ArchivoUtil {
             );
         }
     }
+
+    // TODO: agregar metodo para generar thumbnails de imagenes
 }
