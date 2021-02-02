@@ -68,14 +68,14 @@ public class UsuarioController {
         usuarioService.borrarImagenUsuario(idUsuario);
     }
 
-    @PutMapping("/usuarios/{idUsuario}/admin")
-    public void agregarRolAdmin(@PathVariable("idUsuario") Integer idUsuario) {
-        usuarioService.agregarRolAdmin(idUsuario);
+    @PutMapping("/usuarios/{idUsuario}/empleado")
+    public void agregarEmpleado(@PathVariable("idUsuario") Integer idUsuario) {
+        usuarioService.agregarEmpleado(idUsuario);
     }
 
-    @DeleteMapping("/usuarios/{idUsuario}/admin")
+    @DeleteMapping("/usuarios/{idUsuario}/empleado")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removerRolAdmin(@PathVariable("idUsuario") Integer idUsuario) {
-        usuarioService.removerRolAdmin(idUsuario);
+    public void removerEmpleado(@PathVariable("idUsuario") Integer idUsuario) {
+        usuarioService.removerEmpleado(idUsuario);
     }
 }

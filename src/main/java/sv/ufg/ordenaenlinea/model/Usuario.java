@@ -54,7 +54,11 @@ public class Usuario {
 
     @NotNull
     @Column(nullable = false)
-    private Boolean administrador;
+    private Boolean esEmpleado;
+
+    @NotNull
+    @Column(nullable = false)
+    private Boolean inactivo;
 
     public static Usuario of(UsuarioRequest usuarioRequest) {
         Usuario nuevoUsuario = new Usuario();
@@ -63,8 +67,9 @@ public class Usuario {
         nuevoUsuario.setDireccion(usuarioRequest.getDireccion());
         nuevoUsuario.setTelefono(usuarioRequest.getTelefono());
         nuevoUsuario.setEmailConfirmado(false);
+        nuevoUsuario.setInactivo(false);
         nuevoUsuario.setVersionToken(0L);
-        nuevoUsuario.setAdministrador(false);
+        nuevoUsuario.setEsEmpleado(false);
 
         return nuevoUsuario;
     }

@@ -113,19 +113,18 @@ public class UsuarioService {
     }
 
     public void borrarUsuario(Integer idUsuario) {
-        // Obtener categoría a borrar. De no existir, no realizar ninguna accion (DELETE is idempotent)
+        // Obtener usuario a borrar. De no existir, no realizar ninguna accion (DELETE is idempotent)
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
         if (usuario.isEmpty()) return;
 
         // Guardar la URL de la imagen actual
         String urlImagen = usuario.get().getUrlImagen();
 
-        // Borrar el usuario
-        usuarioRepository.delete(usuario.get());
-
-        // Si el usuario tenia una imagen asociada, borrarla del repositorio
-        if (!modificacionUtil.textoEsNuloOEnBlanco(urlImagen))
-            archivoRepository.borrar(CARPETA, urlImagen);
+        // Marcar la cuenta del usuario como inactiva, si no lo estuviera
+        if (!usuario.get().getInactivo()) {
+            usuario.get().setInactivo(true);
+            usuarioRepository.save(usuario.get());
+        }
     }
 
     public void borrarImagenUsuario(Integer idUsuario) {
@@ -145,18 +144,18 @@ public class UsuarioService {
         usuarioRepository.save(usuario.get());
     }
 
-    public void agregarRolAdmin(Integer idUsuario) {
+    public void agregarEmpleado(Integer idUsuario) {
         Usuario usuario = encontrarUsuarioPorIdOLanzarExcepcion(idUsuario);
-        if (!usuario.getAdministrador()) {
-            usuario.setAdministrador(true);
+        if (!usuario.getEsEmpleado()) {
+            usuario.setEsEmpleado(true);
             usuarioRepository.save(usuario);
         }
     }
 
-    public void removerRolAdmin(Integer idUsuario) {
+    public void removerEmpleado(Integer idUsuario) {
         Usuario usuario = encontrarUsuarioPorIdOLanzarExcepcion(idUsuario);
-        if (usuario.getAdministrador()) {
-            usuario.setAdministrador(false);
+        if (usuario.getEsEmpleado()) {
+            usuario.setEsEmpleado(false);
             usuarioRepository.save(usuario);
         }
     }
