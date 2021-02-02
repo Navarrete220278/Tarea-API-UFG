@@ -117,20 +117,20 @@ public class OrdenService {
     }
 
     @Transactional
-    public Orden cambiarEstadoOrden(Long idOrden, Estado nuevoEstado) {
+    public void cambiarEstadoOrden(Long idOrden, Estado nuevoEstado) {
         Orden orden = obtenerOrdenPorId(idOrden);
 
         // TODO: obtener el id de usuario de la sesión, en lugar de usar el mismo usuario de la orden
         Usuario usuario = orden.getUsuario();
-        return procesarCambioEstado(usuario, orden, nuevoEstado);
+        procesarCambioEstado(usuario, orden, nuevoEstado);
     }
 
-    protected Orden procesarCambioEstado(Usuario usuario, Orden orden, Estado nuevoEstado) {
+    protected void procesarCambioEstado(Usuario usuario, Orden orden, Estado nuevoEstado) {
         // Obtener estado actual de la orden
         Estado estado = orden.getEstado();
 
         // Si el estado no se ha modificado, no realizar ninguna acción
-        if (Objects.equals(estado, nuevoEstado)) return orden;
+        if (Objects.equals(estado, nuevoEstado)) return;
 
         // No se puede modificar órdenes con estados inmutables (CANCELADA, ENTREGADA)
         if (estado.esInmutable())
@@ -152,7 +152,7 @@ public class OrdenService {
         orden.getHistorial().add(ordenHistorial);
         orden.setEstado(nuevoEstado);
 
-        return ordenRepository.save(orden);
+        ordenRepository.save(orden);
     }
 
     private OrdenHistorial crearEntradaHistorial(Usuario usuario, Orden orden, Estado estado, String comentario) {

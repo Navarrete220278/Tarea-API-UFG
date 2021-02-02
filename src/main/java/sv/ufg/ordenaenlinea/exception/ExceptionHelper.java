@@ -6,6 +6,7 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,6 +52,12 @@ public class ExceptionHelper {
     public ResponseEntity<ExceptionWrapper> handleNotFound (
             RuntimeException ex, HttpServletRequest request) {
         return buildResponse(ex, request, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = {AccessDeniedException.class})
+    public ResponseEntity<ExceptionWrapper> handleForbidden (
+            RuntimeException ex, HttpServletRequest request) {
+        return buildResponse(ex, request, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(value = {

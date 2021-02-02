@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Producto;
@@ -27,6 +28,7 @@ public class ProductoController {
 
     @PostMapping("/categorias/{idCategoria}/productos")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('EMPLEADO')")
     public Producto crearProductoEnCategoria(@PathVariable("idCategoria") Integer idCategoria,
                                              @Valid @RequestBody ProductoRequest productoRequest) {
         return productoService.crearProductoEnCategoria(idCategoria, productoRequest);
@@ -48,6 +50,7 @@ public class ProductoController {
     }
 
     @PutMapping("/productos/{idProducto}")
+    @PreAuthorize("hasRole('EMPLEADO')")
     public Producto modificarProducto(@PathVariable("idProducto") Integer idProducto,
                                       @RequestBody ProductoRequest productoRequest) {
         return productoService.modificarProducto(idProducto, productoRequest);
@@ -58,12 +61,14 @@ public class ProductoController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("hasRole('EMPLEADO')")
     public void modificarImagenProducto(@PathVariable("idProducto") Integer idProducto,
                                             @RequestParam("archivo") MultipartFile archivo) {
         productoService.modificarImagenProducto(idProducto, archivo);
     }
 
     @PutMapping(value = "/productos/{idProducto}/categoria/{idCategoria}")
+    @PreAuthorize("hasRole('EMPLEADO')")
     public Producto modificarCategoriaDeProducto(@PathVariable("idProducto") Integer idProducto,
                                                  @PathVariable("idCategoria") Integer idCategoria) {
         return productoService.modificarCategoriaDeProducto(idProducto, idCategoria);
@@ -71,12 +76,14 @@ public class ProductoController {
 
     @DeleteMapping("/productos/{idProducto}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('EMPLEADO')")
     public void borrarProducto(@PathVariable("idProducto") Integer idProducto) {
         productoService.borrarProducto(idProducto);
     }
 
     @DeleteMapping("/productos/{idProducto}/imagen")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('EMPLEADO')")
     public void borrarImagenProducto(@PathVariable("idProducto") Integer idProducto) {
         productoService.borrarImagenProducto(idProducto);
     }
