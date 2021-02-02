@@ -29,7 +29,7 @@ public class Orden {
 
     @NotNull
     @Column(nullable = false)
-    private LocalDateTime fechaEntrega;
+    private LocalDateTime fechaSolicitada;
 
     @NotNull
     @Enumerated(EnumType.STRING)

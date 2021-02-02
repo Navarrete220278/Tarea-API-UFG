@@ -1,13 +1,11 @@
 package sv.ufg.ordenaenlinea.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
-import sv.ufg.ordenaenlinea.model.Producto;
 import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
 import sv.ufg.ordenaenlinea.repository.ProductoRepository;
@@ -17,10 +15,6 @@ import sv.ufg.ordenaenlinea.util.ModificacionUtil;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
 import sv.ufg.ordenaenlinea.model.Producto;
-import sv.ufg.ordenaenlinea.model.Usuario;
 import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
 import sv.ufg.ordenaenlinea.repository.ProductoRepository;
@@ -17,9 +16,6 @@ import sv.ufg.ordenaenlinea.util.ModificacionUtil;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,8 +23,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductoService {
     private final ProductoRepository productoRepository;
-    private final CategoriaRepository categoriaRepository;
     private final ArchivoRepository archivoRepository;
+    private final CategoriaService categoriaService;
     private final ModificacionUtil modificacionUtil;
     private final ArchivoUtil archivoUtil;
     private final String CARPETA = "producto";
@@ -39,7 +35,7 @@ public class ProductoService {
 
     public Producto crearProductoEnCategoria(Integer idCategoria, ProductoRequest productoRequest) {
         // Obtener la categoria a la que se agregará el producto
-        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
+        Categoria categoria = categoriaService.obtenerCategoriaPorId(idCategoria);
 
         // Verificar que el producto no exista
         lanzarExcepcionSiNombreProductoYaExiste(productoRequest);
@@ -87,7 +83,7 @@ public class ProductoService {
         if (producto.getCategoria().getId().equals(idCategoria)) return producto;
 
         // Verificar que la nueva categoria exista
-        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
+        Categoria categoria = categoriaService.obtenerCategoriaPorId(idCategoria);
 
         // Actualizar la categoria en la BD
         producto.setCategoria(categoria);
@@ -158,12 +154,6 @@ public class ProductoService {
         producto.get().setUrlImagen(null);
 
         productoRepository.save(producto.get());
-    }
-
-    private Categoria encontrarCategoriaPorIdOLanzarExcepcion(Integer idCategoria) {
-        return categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
     }
 
     private Producto encontrarProductoPorIdOLanzarExcepcion(Integer idProducto) {

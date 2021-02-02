@@ -12,7 +12,10 @@ aws.sdk.accessKey=
 aws.sdk.secretKey=
 aws.sdk.region=
 aws.s3.bucket.name=
-aws.s3.bucket.app-folder=
+aws.s3.bucket.app-folder=delivery
 
 # File upload properties
-spring.servlet.multipart.max-file-size=
+spring.servlet.multipart.max-file-size=1MB
+
+# Delivery options
+app.entrega.tiempoMinimoMinutos=3-

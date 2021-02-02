@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,10 @@ public class ExceptionHelper {
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxUploadSize;
 
-    @ExceptionHandler(value = {PropertyReferenceException.class})
+    @ExceptionHandler(value = {
+            PropertyReferenceException.class,
+            IllegalArgumentException.class
+    })
     public ResponseEntity<ExceptionWrapper> handleBadRequest (
             RuntimeException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
@@ -51,7 +53,10 @@ public class ExceptionHelper {
         return buildResponse(ex, request, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(value = {EntityExistsException.class})
+    @ExceptionHandler(value = {
+            EntityExistsException.class,
+            IllegalStateException.class
+    })
     public ResponseEntity<ExceptionWrapper> handleConflict (
             RuntimeException ex, HttpServletRequest request) {
         return buildResponse(ex, request, HttpStatus.CONFLICT);

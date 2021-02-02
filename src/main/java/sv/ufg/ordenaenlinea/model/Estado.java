@@ -16,7 +16,7 @@ public enum Estado {
     private final Integer secuencia;
 
     // Estado por defecto para nuevas ordenes
-    public Estado getEstadoPorDefecto() {
+    public static Estado getEstadoPorDefecto() {
         return Estado.PENDIENTE;
     }
 

@@ -25,7 +25,7 @@ public class CategoriaController {
     }
 
     @GetMapping("/categorias/{idCategoria}")
-    public Categoria obtenerCategoriasPorId(@PathVariable("idCategoria") Integer idCategoria) {
+    public Categoria obtenerCategoriaPorId(@PathVariable("idCategoria") Integer idCategoria) {
         return categoriaService.obtenerCategoriaPorId(idCategoria);
     }
 

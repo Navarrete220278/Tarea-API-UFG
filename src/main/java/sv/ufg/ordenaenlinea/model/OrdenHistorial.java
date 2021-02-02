@@ -35,6 +35,7 @@ public class OrdenHistorial {
 
     @NotNull
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Estado estado;
 
     @ManyToOne
