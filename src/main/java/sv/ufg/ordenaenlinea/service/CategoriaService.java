@@ -1,15 +1,19 @@
 package sv.ufg.ordenaenlinea.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
+import sv.ufg.ordenaenlinea.model.Producto;
 import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
+import sv.ufg.ordenaenlinea.repository.ProductoRepository;
 import sv.ufg.ordenaenlinea.request.CategoriaRequest;
 import sv.ufg.ordenaenlinea.util.ArchivoUtil;
+import sv.ufg.ordenaenlinea.util.ModificacionUtil;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
@@ -24,8 +28,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CategoriaService {
     private final CategoriaRepository categoriaRepository;
+    private final ProductoRepository productoRepository;
     private final ArchivoRepository archivoRepository;
     private final ArchivoUtil archivoUtil;
+    private final ModificacionUtil modificacionUtil;
     private final String CARPETA = "categoria";
 
     public Page<Categoria> obtenerCategorias(Pageable pageable) {
@@ -33,16 +39,12 @@ public class CategoriaService {
     }
 
     public Categoria obtenerCategoriaPorId(Integer idCategoria) {
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
         return categoria;
     }
 
     public byte[] obtenerImagenCategoria(Integer idCategoria) {
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
 
         if (categoria.getUrlImagen() == null || categoria.getUrlImagen().isBlank())
             return new byte[0];
@@ -50,27 +52,20 @@ public class CategoriaService {
             return archivoRepository.descargar(CARPETA, categoria.getUrlImagen());
     }
 
-    public Categoria postearCategoria(CategoriaRequest categoriaRequest) {
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoriaRequest.getNombre());
-        if (categoriaHomonima.isPresent())
-            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoriaRequest.getNombre()));
+    public Categoria crearCategoria(CategoriaRequest categoriaRequest) {
+        lanzarExcepcionSiNombreCategoriaYaExiste(categoriaRequest);
 
         return categoriaRepository.save(Categoria.of(categoriaRequest));
     }
 
     public Categoria modificarCategoria(Integer idCategoria, CategoriaRequest categoriaRequest) {
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
 
         // Si el nombre no ha sido modificado, no realizar ninguna acción
-        boolean nombreSinCambios = categoriaRequest.getNombre() == null || categoriaRequest.getNombre().isBlank()
-                || Objects.equals(categoriaRequest.getNombre(), categoria.getNombre());
-        if (nombreSinCambios) return categoria;
+        if (!modificacionUtil.textoHaSidoModificado(categoriaRequest.getNombre(), categoria.getNombre()))
+            return categoria;
 
-        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoriaRequest.getNombre());
-        if (categoriaHomonima.isPresent())
-            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoriaRequest.getNombre()));
+        lanzarExcepcionSiNombreCategoriaYaExiste(categoriaRequest);
 
         categoria.setNombre(categoriaRequest.getNombre());
         return categoriaRepository.save(categoria);
@@ -88,31 +83,15 @@ public class CategoriaService {
         archivoUtil.esArchivoNoVacio(archivo);
         archivoUtil.esImagen(archivo);
 
-        // Obtener categoría a actualizar
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
-
-        // Extraer metadatos del archivo
-        Map<String, String> metadata = archivoUtil.extraerMetadata(archivo);
-
-        // Guardar el nombre del archivo actual (para borrarlo después de subir el nuevo)
-        String nombreArchivoAnterior = categoria.getUrlImagen();
+        // Obtener categoria a actualizar
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
 
         // Guardar imagen en S3 y actualizar ruta en la categoria
-        try {
-            String nombreArchivo = archivoUtil.obtenerNuevoNombreArchivo(archivo);
-            archivoRepository.subir(CARPETA, nombreArchivo, Optional.of(metadata), archivo.getInputStream());
-            categoria.setUrlImagen(nombreArchivo); // Actualizar la URL de la imagen
-            categoriaRepository.save(categoria);
+        String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, categoria.getUrlImagen());
 
-            // Borrar el archivo anterior (de existir)
-            if (nombreArchivoAnterior != null && !nombreArchivoAnterior.isBlank())
-                archivoRepository.borrar(CARPETA, nombreArchivoAnterior);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    String.format("No se pudo actualizar la imagen de la categoria %s", idCategoria), e
-            );
+        if (!modificacionUtil.textoHaSidoModificado(categoria.getUrlImagen(), nombreArchivoNuevo)) {
+            categoria.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
+            categoriaRepository.save(categoria);
         }
     }
 
@@ -147,5 +126,17 @@ public class CategoriaService {
         categoria.get().setUrlImagen(null);
 
         categoriaRepository.save(categoria.get());
+    }
+
+    private Categoria encontrarCategoriaPorIdOLanzarExcepcion(Integer idCategoria) {
+        return categoriaRepository.findById(idCategoria).orElseThrow(
+                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
+        );
+    }
+
+    private void lanzarExcepcionSiNombreCategoriaYaExiste(CategoriaRequest categoriaRequest) {
+        Optional<Categoria> categoriaHomonima = categoriaRepository.findByNombre(categoriaRequest.getNombre());
+        if (categoriaHomonima.isPresent())
+            throw new EntityExistsException(String.format("La categoria '%s' ya existe", categoriaRequest.getNombre()));
     }
 }

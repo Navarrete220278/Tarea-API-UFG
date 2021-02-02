@@ -48,9 +48,9 @@ public class ProductoController {
     }
 
     @PutMapping("/productos/{idProducto}")
-    public Producto modificarProductoPorId(@PathVariable("idProducto") Integer idProducto,
-                                           @RequestBody ProductoRequest productoRequest) {
-        return productoService.modificarProductoPorId(idProducto, productoRequest);
+    public Producto modificarProducto(@PathVariable("idProducto") Integer idProducto,
+                                      @RequestBody ProductoRequest productoRequest) {
+        return productoService.modificarProducto(idProducto, productoRequest);
     }
 
     @PutMapping(
@@ -63,7 +63,7 @@ public class ProductoController {
         productoService.modificarImagenProducto(idProducto, archivo);
     }
 
-    @PutMapping(value = "/productos/{idProducto}/categorias/{idCategoria}")
+    @PutMapping(value = "/productos/{idProducto}/categoria/{idCategoria}")
     public Producto modificarCategoriaDeProducto(@PathVariable("idProducto") Integer idProducto,
                                                  @PathVariable("idCategoria") Integer idCategoria) {
         return productoService.modificarCategoriaDeProducto(idProducto, idCategoria);

@@ -8,6 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -35,10 +36,9 @@ public class Orden {
     @Column(nullable = false)
     private Estado estado;
 
-    @OneToMany(mappedBy = "orden")
-    private Set<OrdenDetalle> detalles;
+    @OneToMany(mappedBy = "orden", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private Set<OrdenDetalle> detalles = new HashSet<>();
 
-    @OneToMany(mappedBy = "orden")
-    @JsonIgnore
-    private Set<OrdenHistorial> historial;
+    @OneToMany(mappedBy = "orden", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private Set<OrdenHistorial> historial = new HashSet<>();
 }

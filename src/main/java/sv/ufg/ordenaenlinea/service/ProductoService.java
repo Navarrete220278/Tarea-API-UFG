@@ -7,11 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sv.ufg.ordenaenlinea.model.Categoria;
 import sv.ufg.ordenaenlinea.model.Producto;
+import sv.ufg.ordenaenlinea.model.Usuario;
 import sv.ufg.ordenaenlinea.repository.ArchivoRepository;
 import sv.ufg.ordenaenlinea.repository.CategoriaRepository;
 import sv.ufg.ordenaenlinea.repository.ProductoRepository;
 import sv.ufg.ordenaenlinea.request.ProductoRequest;
 import sv.ufg.ordenaenlinea.util.ArchivoUtil;
+import sv.ufg.ordenaenlinea.util.ModificacionUtil;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
@@ -27,6 +29,7 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final ArchivoRepository archivoRepository;
+    private final ModificacionUtil modificacionUtil;
     private final ArchivoUtil archivoUtil;
     private final String CARPETA = "producto";
 
@@ -36,14 +39,10 @@ public class ProductoService {
 
     public Producto crearProductoEnCategoria(Integer idCategoria, ProductoRequest productoRequest) {
         // Obtener la categoria a la que se agregará el producto
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
 
         // Verificar que el producto no exista
-        Optional<Producto> productoHomonimo = productoRepository.findByNombre(productoRequest.getNombre());
-        if (productoHomonimo.isPresent())
-            throw new EntityExistsException(String.format("El producto '%s' ya existe", productoRequest.getNombre()));
+        lanzarExcepcionSiNombreProductoYaExiste(productoRequest);
 
         // Actualizar la categoria y guardar el producto en la BD
         Producto producto = Producto.of(productoRequest);
@@ -56,54 +55,45 @@ public class ProductoService {
     }
 
     public Producto obtenerProductoPorId(Integer idProducto) {
-        return productoRepository.findById(idProducto).orElseThrow(
-                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
-        );
+        return encontrarProductoPorIdOLanzarExcepcion(idProducto);
     }
 
-    public Producto modificarProductoPorId(Integer idProducto, ProductoRequest productoRequest) {
-        Producto productoAModificar = productoRepository.findById(idProducto).orElseThrow(
-                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
-        );
+    public Producto modificarProducto(Integer idProducto, ProductoRequest productoRequest) {
+        Producto producto = encontrarProductoPorIdOLanzarExcepcion(idProducto);
 
         boolean modificado = false; // Variable de control para saber si el producto fue modificado
 
         // Detectar cambios en el nombre
-        if (productoRequest.getNombre() != null && !productoRequest.getNombre().isBlank()
-                && !Objects.equals(productoAModificar.getNombre(), productoRequest.getNombre())) {
-            productoAModificar.setNombre(productoRequest.getNombre());
+        if (modificacionUtil.textoHaSidoModificado(productoRequest.getNombre(), producto.getNombre())) {
+            lanzarExcepcionSiNombreProductoYaExiste(productoRequest);
+            producto.setNombre(productoRequest.getNombre());
             modificado = true;
         }
 
         // Detectar cambios en el precio
-        if (productoRequest.getPrecio() != null && !Objects.equals(productoAModificar.getPrecio(), productoRequest.getPrecio())) {
-            productoAModificar.setPrecio(productoRequest.getPrecio());
+        if (productoRequest.getPrecio() != null && !Objects.equals(producto.getPrecio(), productoRequest.getPrecio())) {
+            producto.setPrecio(productoRequest.getPrecio());
             modificado = true;
         }
 
-        if (!modificado) return productoAModificar;
-        else return productoRepository.save(productoAModificar);
+        if (!modificado) return producto;
+        else return productoRepository.save(producto);
     }
 
     public Producto modificarCategoriaDeProducto(Integer idProducto, Integer idCategoria) {
-        Producto producto = productoRepository.findById(idProducto).orElseThrow(
-                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
-        );
+        Producto producto = encontrarProductoPorIdOLanzarExcepcion(idProducto);
 
         // Si la categoria no ha cambiado, no realizar ninguna accion
         if (producto.getCategoria().getId().equals(idCategoria)) return producto;
 
         // Verificar que la nueva categoria exista
-        Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(
-                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
-        );
+        Categoria categoria = encontrarCategoriaPorIdOLanzarExcepcion(idCategoria);
 
         // Actualizar la categoria en la BD
         producto.setCategoria(categoria);
         return productoRepository.save(producto);
     }
-
-    @SuppressWarnings("DuplicatedCode")
+    
     public void modificarImagenProducto(Integer idProducto, MultipartFile archivo) {
         /*
          TODO: calculate a hash of the multipart and save it into the database.
@@ -117,37 +107,19 @@ public class ProductoService {
         archivoUtil.esImagen(archivo);
 
         // Obtener producto a actualizar
-        Producto producto = productoRepository.findById(idProducto).orElseThrow(
-                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
-        );
+        Producto producto = encontrarProductoPorIdOLanzarExcepcion(idProducto);
 
-        // Extraer metadatos del archivo
-        Map<String, String> metadata = archivoUtil.extraerMetadata(archivo);
+        // Guardar imagen en S3 y actualizar ruta en el producto
+        String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, producto.getUrlImagen());
 
-        // Guardar el nombre del archivo actual (para borrarlo después de subir el nuevo)
-        String nombreArchivoAnterior = producto.getUrlImagen();
-
-        // Guardar imagen en S3 y actualizar ruta en la producto
-        try {
-            String nombreArchivo = archivoUtil.obtenerNuevoNombreArchivo(archivo);
-            archivoRepository.subir(CARPETA, nombreArchivo, Optional.of(metadata), archivo.getInputStream());
-            producto.setUrlImagen(nombreArchivo); // Actualizar la URL de la imagen
+        if (!modificacionUtil.textoHaSidoModificado(producto.getUrlImagen(), nombreArchivoNuevo)) {
+            producto.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
             productoRepository.save(producto);
-
-            // Borrar el archivo anterior (de existir)
-            if (nombreArchivoAnterior != null && !nombreArchivoAnterior.isBlank())
-                archivoRepository.borrar(CARPETA, nombreArchivoAnterior);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    String.format("No se pudo actualizar la imagen de la producto %s", idProducto), e
-            );
         }
     }
 
     public byte[] obtenerImagenProducto(Integer idProducto) {
-        Producto producto = productoRepository.findById(idProducto).orElseThrow(
-                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
-        );
+        Producto producto = encontrarProductoPorIdOLanzarExcepcion(idProducto);
 
         if (producto.getUrlImagen() == null || producto.getUrlImagen().isBlank())
             return new byte[0];
@@ -186,5 +158,23 @@ public class ProductoService {
         producto.get().setUrlImagen(null);
 
         productoRepository.save(producto.get());
+    }
+
+    private Categoria encontrarCategoriaPorIdOLanzarExcepcion(Integer idCategoria) {
+        return categoriaRepository.findById(idCategoria).orElseThrow(
+                () -> new EntityNotFoundException(String.format("La categoria con id %s no existe", idCategoria))
+        );
+    }
+
+    private Producto encontrarProductoPorIdOLanzarExcepcion(Integer idProducto) {
+        return productoRepository.findById(idProducto).orElseThrow(
+                () -> new EntityNotFoundException(String.format("El producto con id %s no existe", idProducto))
+        );
+    }
+
+    private void lanzarExcepcionSiNombreProductoYaExiste(ProductoRequest productoRequest) {
+        Optional<Producto> productoHomonimo = productoRepository.findByNombre(productoRequest.getNombre());
+        if (productoHomonimo.isPresent())
+            throw new EntityExistsException(String.format("El producto '%s' ya existe", productoRequest.getNombre()));
     }
 }

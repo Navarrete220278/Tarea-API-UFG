@@ -4,15 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sv.ufg.ordenaenlinea.request.UsuarioRequest;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(name = "usuario_usuario_unq", columnNames = "usuario"),
                 @UniqueConstraint(name = "usuario_email_unq", columnNames = "email")
         }
 )
@@ -24,8 +25,9 @@ public class Usuario {
     private Integer id;
 
     @NotBlank
+    @Email
     @Column(nullable = false)
-    private String usuario;
+    private String email;
 
     @NotBlank
     @Column(nullable = false)
@@ -36,33 +38,34 @@ public class Usuario {
     @JsonIgnore
     private String urlImagen;
 
-    @NotBlank
-    @Email
-    @Column(nullable = false)
-    private String email;
-
     private String direccion;
 
     private String telefono;
 
     @NotNull
     @Column(nullable = false)
+    @JsonIgnore
     private Boolean emailConfirmado;
-
-    private Boolean telefonoConfirmado;
 
     @NotNull
     @Column(nullable = false)
+    @JsonIgnore
     private Long versionToken;
 
-    @OneToMany(mappedBy = "usuario")
-    private Set<UsuarioRol> roles;
+    @NotNull
+    @Column(nullable = false)
+    private Boolean administrador;
 
-    @OneToMany(mappedBy = "usuario")
-    @JsonIgnore
-    private Set<Orden> ordenes;
+    public static Usuario of(UsuarioRequest usuarioRequest) {
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setEmail(usuarioRequest.getEmail());
+        nuevoUsuario.setPassword(usuarioRequest.getPassword());
+        nuevoUsuario.setDireccion(usuarioRequest.getDireccion());
+        nuevoUsuario.setTelefono(usuarioRequest.getTelefono());
+        nuevoUsuario.setEmailConfirmado(false);
+        nuevoUsuario.setVersionToken(0L);
+        nuevoUsuario.setAdministrador(false);
 
-    @OneToMany(mappedBy = "usuario")
-    @JsonIgnore
-    private Set<OrdenHistorial> historial;
+        return nuevoUsuario;
+    }
 }

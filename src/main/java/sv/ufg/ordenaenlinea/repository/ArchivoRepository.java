@@ -11,12 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+import sv.ufg.ordenaenlinea.util.ArchivoUtil;
+import sv.ufg.ordenaenlinea.util.ModificacionUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,28 +28,43 @@ public class ArchivoRepository {
     private String appFolder;
     private final AmazonS3 s3;
     private final Logger logger = LoggerFactory.getLogger(ArchivoRepository.class);
+    private final ArchivoUtil archivoUtil;
+    private final ModificacionUtil modificacionUtill;
 
-    public void subir(String carpetaDestino,
-                      String nombreArchivo,
-                      Optional<Map<String, String>> metadataOpcional,
-                      InputStream inputStream) throws IOException {
+    public String subir(MultipartFile multipartFile, String carpetaDestino, String nombreArchivoAnterior) {
+        return subir(multipartFile,
+                carpetaDestino,
+                nombreArchivoAnterior,
+                archivoUtil.obtenerNuevoNombreArchivo(multipartFile));
+    }
+    public String subir(MultipartFile multipartFile,
+                        String carpetaDestino,
+                        String nombreArchivoAnterior,
+                        String nombreArchivoNuevo) {
+        boolean existeArchivoAnterior = !modificacionUtill.textoEsNuloOEnBlanco(nombreArchivoAnterior);
+        boolean existeArchivoNuevo = false;
 
+        // Extraer metadata
+        Map<String, String> atributosMetadata = archivoUtil.extraerMetadata(multipartFile);
         ObjectMetadata metadata = new ObjectMetadata();
-
-        metadataOpcional.ifPresent(map -> {
-            if (!map.isEmpty()) {
-                map.forEach(metadata::addUserMetadata);
-            }
-        });
+        atributosMetadata.forEach(metadata::addUserMetadata);
 
         try {
-            String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivo);
-            s3.putObject(bucketName, llave, inputStream, metadata);
-        } catch (AmazonServiceException e) {
-            String mensajeError = String.format("No se pudo guardar el archivo %s", nombreArchivo);
-            logger.error(mensajeError, e);
-            throw new IOException(mensajeError);
+            String llave = obtenerLlaveBucket(carpetaDestino, nombreArchivoNuevo);
+            s3.putObject(bucketName, llave, multipartFile.getInputStream(), metadata);
+            existeArchivoNuevo = true;
+            if (existeArchivoAnterior) {
+                borrar(carpetaDestino, nombreArchivoAnterior);
+            }
+            return nombreArchivoNuevo;
+        } catch (AmazonServiceException | IOException e) {
+            logger.error(e.getClass().getCanonicalName() + ": " + e.getMessage());
         }
+
+        if (existeArchivoNuevo)
+            return nombreArchivoNuevo;
+        else
+            return nombreArchivoAnterior;
     }
 
     public byte[] descargar(String carpetaDestino, String nombreArchivo) {

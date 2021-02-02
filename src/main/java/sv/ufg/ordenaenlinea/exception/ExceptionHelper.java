@@ -1,6 +1,7 @@
 package sv.ufg.ordenaenlinea.exception;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,18 @@ public class ExceptionHelper {
             RuntimeException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        return buildValidationResponse(request, status, ex.getMessage(), new ArrayList<>());
+        return buildResponse(ex, request, status, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {DataIntegrityViolationException.class})
+    public ResponseEntity<ExceptionWrapper> handleDataIntegrity (
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        return buildResponse(ex,
+                request,
+                status,
+                "No se puede eliminar un recurso que tiene uno o más recursos hijos");
     }
 
     @ExceptionHandler(value = {EntityNotFoundException.class})

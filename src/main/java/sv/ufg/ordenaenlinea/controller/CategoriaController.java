@@ -37,7 +37,7 @@ public class CategoriaController {
     @PostMapping("/categorias")
     @ResponseStatus(HttpStatus.CREATED)
     public Categoria crearCategoria(@Valid @RequestBody CategoriaRequest categoriaRequest) {
-        return categoriaService.postearCategoria(categoriaRequest);
+        return categoriaService.crearCategoria(categoriaRequest);
     }
 
     @PutMapping("/categorias/{idCategoria}")

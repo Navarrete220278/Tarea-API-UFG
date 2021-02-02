@@ -27,6 +27,7 @@ public class OrdenHistorial {
 
     @ManyToOne
     @JoinColumn(name = "orden_id")
+    @JsonIgnore
     private Orden orden;
 
     @Column(nullable = false)
