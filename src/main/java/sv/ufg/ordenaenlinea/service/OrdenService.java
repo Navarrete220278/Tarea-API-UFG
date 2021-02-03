@@ -11,6 +11,7 @@ import sv.ufg.ordenaenlinea.repository.OrdenRepository;
 import sv.ufg.ordenaenlinea.request.OrdenRequest;
 
 import javax.persistence.EntityNotFoundException;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +23,7 @@ public class OrdenService {
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
 
-    @Value("${app.entrega.tiempoMinimoMinutos}")
+    @Value("${app.delivery.tiempo-minutos}")
     private Integer tiempoEntrgaMinimoMinutos;
 
     public Page<Orden> obtenerOrdenes(Pageable pageable) {
@@ -117,11 +118,10 @@ public class OrdenService {
     }
 
     @Transactional
-    public void cambiarEstadoOrden(Long idOrden, Estado nuevoEstado) {
+    public void cambiarEstadoOrden(Long idOrden, Estado nuevoEstado, Principal principal) {
         Orden orden = obtenerOrdenPorId(idOrden);
 
-        // TODO: obtener el id de usuario de la sesión, en lugar de usar el mismo usuario de la orden
-        Usuario usuario = orden.getUsuario();
+        Usuario usuario = usuarioService.obtenerUsuarioPorId(Integer.parseInt(principal.getName()));
         procesarCambioEstado(usuario, orden, nuevoEstado);
     }
 

@@ -3,6 +3,7 @@ package sv.ufg.ordenaenlinea.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ public class UsuarioService {
     private final ArchivoRepository archivoRepository;
     private final ArchivoUtil archivoUtil;
     private final ModificacionUtil modificacionUtil;
+    private final PasswordEncoder passwordEncoder;
     private final String CARPETA = "usuario";
 
     public Page<Usuario> obtenerUsuarios(Pageable pageable) {
@@ -50,6 +52,10 @@ public class UsuarioService {
         // Verificar que el email no esté registrado
         lanzarExcepcionSiEmailUsuarioYaExiste(usuarioRequest);
 
+        // Calcular el hash del password
+        usuarioRequest.setPassword(passwordEncoder.encode(usuarioRequest.getPassword()));
+
+        // Guardar el password en la base de datos
         return usuarioRepository.save(Usuario.of(usuarioRequest));
     }
 
@@ -67,8 +73,7 @@ public class UsuarioService {
 
         // Detectar cambios en el password
         if (modificacionUtil.passwordHaSidoModificado(usuarioRequest.getPassword(), usuario.getPassword())) {
-            // TODO: encriptar el password antes de guardarlo
-            usuario.setPassword(usuarioRequest.getPassword());
+            usuario.setPassword(passwordEncoder.encode(usuarioRequest.getPassword()));
             modificado = true;
         }
 
@@ -170,5 +175,15 @@ public class UsuarioService {
         Optional<Usuario> usuarioHomonimo = usuarioRepository.findByEmail(usuarioRequest.getEmail());
         if (usuarioHomonimo.isPresent())
             throw new EntityExistsException(String.format("El usuario '%s' ya existe", usuarioRequest.getEmail()));
+    }
+
+    @Transactional
+    public void invalidarRefreshTokens(Integer idUsuario) {
+        Optional<Usuario> usuarioOptional = usuarioRepository.findById(idUsuario);
+        if (usuarioOptional.isPresent()) {
+            Usuario usuario = usuarioOptional.get();
+            usuario.setVersionToken(usuario.getVersionToken() + 1);
+            usuarioRepository.save(usuario);
+        }
     }
 }

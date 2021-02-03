@@ -1,5 +1,9 @@
 package sv.ufg.ordenaenlinea.exception;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
@@ -7,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -59,6 +64,13 @@ public class ExceptionHelper {
             RuntimeException ex, HttpServletRequest request) {
         return buildResponse(ex, request, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(value = {JwtException.class, AuthenticationException.class})
+    public ResponseEntity<ExceptionWrapper> handleUnauthorized (
+            RuntimeException ex, HttpServletRequest request) {
+        return buildResponse(ex, request, HttpStatus.UNAUTHORIZED, "Authentication error");
+    }
+
 
     @ExceptionHandler(value = {
             EntityExistsException.class,

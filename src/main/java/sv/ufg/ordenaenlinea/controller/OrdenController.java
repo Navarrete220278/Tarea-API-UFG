@@ -12,6 +12,7 @@ import sv.ufg.ordenaenlinea.request.OrdenRequest;
 import sv.ufg.ordenaenlinea.service.OrdenService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -62,19 +63,19 @@ public class OrdenController {
 
     @PutMapping("/ordenes/{idOrden}/preparacion")
     @PreAuthorize("hasRole('EMPLEADO')")
-    public void indicarOrdenPreparacion(@PathVariable("idOrden") Long idOrden) {
-        ordenService.cambiarEstadoOrden(idOrden, Estado.PREPARACION);
+    public void indicarOrdenPreparacion(@PathVariable("idOrden") Long idOrden, Principal principal) {
+        ordenService.cambiarEstadoOrden(idOrden, Estado.PREPARACION, principal);
     }
 
     @PutMapping("/ordenes/{idOrden}/en-transito")
     @PreAuthorize("hasRole('EMPLEADO')")
-    public void indicarOrdenEnTransito(@PathVariable("idOrden") Long idOrden) {
-        ordenService.cambiarEstadoOrden(idOrden, Estado.EN_TRANSITO);
+    public void indicarOrdenEnTransito(@PathVariable("idOrden") Long idOrden, Principal principal) {
+        ordenService.cambiarEstadoOrden(idOrden, Estado.EN_TRANSITO, principal);
     }
 
     @PutMapping("/ordenes/{idOrden}/entregada")
     @PreAuthorize("hasRole('EMPLEADO')")
-    public void indicarOrdenEntregada(@PathVariable("idOrden") Long idOrden) {
-        ordenService.cambiarEstadoOrden(idOrden, Estado.ENTREGADA);
+    public void indicarOrdenEntregada(@PathVariable("idOrden") Long idOrden, Principal principal) {
+        ordenService.cambiarEstadoOrden(idOrden, Estado.ENTREGADA, principal);
     }
 }
