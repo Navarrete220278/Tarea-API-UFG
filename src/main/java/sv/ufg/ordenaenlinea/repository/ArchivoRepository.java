@@ -74,9 +74,9 @@ public class ArchivoRepository {
             S3ObjectInputStream inputStream = s3Object.getObjectContent();
             return IOUtils.toByteArray(inputStream);
         } catch (AmazonServiceException | IOException e) {
-            String mensajeError = String.format("No se pudo descargar el archivo %", nombreArchivo);
+            String mensajeError = String.format("No se pudo descargar el archivo %s", nombreArchivo);
             logger.error(mensajeError, e);
-            throw new IllegalStateException(mensajeError);
+            return new byte[0];
         }
     }
 

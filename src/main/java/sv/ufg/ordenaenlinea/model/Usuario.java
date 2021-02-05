@@ -33,6 +33,14 @@ public class Usuario {
     @JsonIgnore
     private String password;
 
+    @NotBlank
+    @Column(nullable = false)
+    private String nombres;
+
+    @NotBlank
+    @Column(nullable = false)
+    private String apellidos;
+
     @JsonIgnore
     private String urlImagen;
 
@@ -64,6 +72,8 @@ public class Usuario {
         nuevoUsuario.setPassword(usuarioRequest.getPassword());
         nuevoUsuario.setDireccion(usuarioRequest.getDireccion());
         nuevoUsuario.setTelefono(usuarioRequest.getTelefono());
+        nuevoUsuario.setNombres(usuarioRequest.getNombres());
+        nuevoUsuario.setApellidos(usuarioRequest.getApellidos());
         nuevoUsuario.setEmailConfirmado(false);
         nuevoUsuario.setInactivo(false);
         nuevoUsuario.setVersionToken(0L);

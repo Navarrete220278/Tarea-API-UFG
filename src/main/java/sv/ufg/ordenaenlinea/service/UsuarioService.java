@@ -34,8 +34,7 @@ public class UsuarioService {
     }
 
     public Usuario obtenerUsuarioPorId(Integer idUsuario) {
-        Usuario usuario = encontrarUsuarioPorIdOLanzarExcepcion(idUsuario);
-        return usuario;
+        return encontrarUsuarioPorIdOLanzarExcepcion(idUsuario);
     }
 
     public byte[] obtenerImagenUsuario(Integer idUsuario) {
@@ -77,6 +76,18 @@ public class UsuarioService {
             modificado = true;
         }
 
+        // Detectar cambios en los nombres
+        if (modificacionUtil.textoHaSidoModificado(usuarioRequest.getNombres(), usuario.getNombres())) {
+            usuario.setNombres(usuarioRequest.getNombres());
+            modificado = true;
+        }
+
+        // Detectar cambios en los apellidos
+        if (modificacionUtil.textoHaSidoModificado(usuarioRequest.getApellidos(), usuario.getApellidos())) {
+            usuario.setApellidos(usuarioRequest.getApellidos());
+            modificado = true;
+        }
+
         // Detectar cambios en la direccion
         if (modificacionUtil.textoHaSidoModificado(usuarioRequest.getDireccion(), usuario.getDireccion())) {
             usuario.setDireccion(usuarioRequest.getDireccion());
@@ -111,7 +122,7 @@ public class UsuarioService {
         // Guardar imagen en S3 y actualizar ruta en el usuario
         String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, usuario.getUrlImagen());
 
-        if (!modificacionUtil.textoHaSidoModificado(usuario.getUrlImagen(), nombreArchivoNuevo)) {
+        if (modificacionUtil.textoHaSidoModificado(usuario.getUrlImagen(), nombreArchivoNuevo)) {
             usuario.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
             usuarioRepository.save(usuario);
         }
@@ -121,9 +132,6 @@ public class UsuarioService {
         // Obtener usuario a borrar. De no existir, no realizar ninguna accion (DELETE is idempotent)
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
         if (usuario.isEmpty()) return;
-
-        // Guardar la URL de la imagen actual
-        String urlImagen = usuario.get().getUrlImagen();
 
         // Marcar la cuenta del usuario como inactiva, si no lo estuviera
         if (!usuario.get().getInactivo()) {

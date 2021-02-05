@@ -18,6 +18,12 @@ public class UsuarioRequest {
     @Size(min = 6)
     private String password;
 
+    @NotBlank
+    private String nombres;
+
+    @NotBlank
+    private String apellidos;
+
     private String direccion;
 
     private String telefono;

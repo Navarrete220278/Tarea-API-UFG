@@ -83,7 +83,7 @@ public class CategoriaService {
         // Guardar imagen en S3 y actualizar ruta en la categoria
         String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, categoria.getUrlImagen());
 
-        if (!modificacionUtil.textoHaSidoModificado(categoria.getUrlImagen(), nombreArchivoNuevo)) {
+        if (modificacionUtil.textoHaSidoModificado(categoria.getUrlImagen(), nombreArchivoNuevo)) {
             categoria.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
             categoriaRepository.save(categoria);
         }
