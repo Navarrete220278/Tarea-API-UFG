@@ -34,7 +34,7 @@ public class JwtUserDetailsService implements UserDetailsService {
         JwtUserDetails jwtUserDetails = new JwtUserDetails(
                 usuario.getId().toString(),
                 usuario.getPassword(),
-                usuario.getVersionToken(),
+                usuario,
                 !usuario.getInactivo(),
                 authorities
         );

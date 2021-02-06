@@ -39,7 +39,7 @@ public class JwtTokenUtil {
                     .build().parseClaimsJws(token).getBody());
         } catch (JwtException ex) {
             logger.error(ex.getMessage() + " Token: " + token + ".");
-            return Optional.ofNullable(null);
+            return Optional.empty();
         }
     }
 
@@ -65,7 +65,7 @@ public class JwtTokenUtil {
                     .build().parseClaimsJws(refreshToken).getBody());
         } catch (JwtException ex) {
             logger.error(ex.getMessage() + " Refresh token: " + refreshToken + ".");
-            return Optional.ofNullable(null);
+            return Optional.empty();
         }
     }
 

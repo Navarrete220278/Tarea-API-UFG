@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import sv.ufg.ordenaenlinea.model.Usuario;
 
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import java.util.Set;
 public class JwtUserDetails implements UserDetails {
     private final String username;
     private final String password;
-    private final long version;
+    private final Usuario usuario;
     private final boolean accountNonExpired = true;
     private final boolean accountNonLocked = true;
     private final boolean credentialsNonExpired = true;

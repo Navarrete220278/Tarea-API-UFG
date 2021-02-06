@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 @Getter @Setter @NoArgsConstructor
 public class JwtAuthRequest {
     @NotBlank
-    private String usuario;
+    private String email;
     @NotBlank
     private String password;
 }

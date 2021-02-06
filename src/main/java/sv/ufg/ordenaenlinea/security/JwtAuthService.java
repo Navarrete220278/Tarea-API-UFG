@@ -3,7 +3,6 @@ package sv.ufg.ordenaenlinea.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.lang.Strings;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,9 +21,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,17 +37,17 @@ public class JwtAuthService {
     public JwtAuthResponse iniciarSesion(JwtAuthRequest jwtAuthRequest,
                                          HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(jwtAuthRequest.getUsuario(), jwtAuthRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(jwtAuthRequest.getEmail(), jwtAuthRequest.getPassword())
         );
 
         String token = jwtTokenUtil.generateToken(authentication.getName(), authentication.getAuthorities());
 
         // Crea el refresh token y lo guarda en una cookie HTTP only
-        Long refreshTokenVersion = ((JwtUserDetails) authentication.getPrincipal()).getVersion();
-        Cookie refreshTokenCookie = jwtTokenUtil.getRefreshTokenCookie(authentication.getName(), refreshTokenVersion);
+        Usuario usuario = ((JwtUserDetails) authentication.getPrincipal()).getUsuario();
+        Cookie refreshTokenCookie = jwtTokenUtil.getRefreshTokenCookie(authentication.getName(), usuario.getVersionToken());
         response.addCookie(refreshTokenCookie);
 
-        return new JwtAuthResponse(token);
+        return new JwtAuthResponse(token, usuario);
     }
 
     public JwtAuthResponse refrescarToken(HttpServletRequest request, HttpServletResponse response) {
@@ -85,7 +81,7 @@ public class JwtAuthService {
                     .getRefreshTokenCookie(usuario.getId().toString(), usuario.getVersionToken());
             response.addCookie(refreshTokenCookie);
 
-            return new JwtAuthResponse(token);
+            return new JwtAuthResponse(token, usuario);
         } catch (EntityNotFoundException e) {
             logger.error("El refresh token es válido, pero el idUsuario " + body.getSubject() + " no existe");
             throw new BadCredentialsException("A refresh token was provided but it cannot be trusted");
