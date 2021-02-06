@@ -49,12 +49,17 @@ export default function Productos() {
   return (
     <div>
       <h1>{categoria.nombre}</h1>
-      <Paginacion
-        numeroPagina={numeroPagina}
-        paginasTotales={paginasTotales}
-        avanzarPaginaHandler={avanzarPaginaHandler}
-        retrocederPaginaHandler={retrocederPaginaHandler}
-      />
+      {productos.length > 0 ? (
+        <Paginacion
+          numeroPagina={numeroPagina}
+          paginasTotales={paginasTotales}
+          avanzarPaginaHandler={avanzarPaginaHandler}
+          retrocederPaginaHandler={retrocederPaginaHandler}
+        />
+      ) : (
+        <p>No se encontraron productos para esta categoría.</p>
+      )}
+
       <ul className="list-none padding-zero">
         {productos.map((producto) => (
           <Producto key={producto.id} producto={producto} />

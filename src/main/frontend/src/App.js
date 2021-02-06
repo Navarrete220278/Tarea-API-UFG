@@ -9,6 +9,8 @@ import RutaCliente from './components/RutaCliente';
 import Categorias from './components/Categorias';
 import Productos from './components/Productos';
 import Carrito from './components/Carrito';
+import Login from './components/Login';
+import Logout from './components/Logout';
 
 export default function App() {
   return (
@@ -24,7 +26,7 @@ export default function App() {
               <Productos />
             </Route>
             <Route path="/iniciar-sesion">
-              <h1>Iniciar sesión</h1>
+              <Login />
             </Route>
             <Route path="/carrito">
               <Carrito />
@@ -32,6 +34,12 @@ export default function App() {
             <RutaCliente path="/mis-ordenes">
               <h1>Mis órdenes</h1>
             </RutaCliente>
+            <RutaCliente path="/crear-orden">
+              <h1>Crear orden</h1>
+            </RutaCliente>
+            <Route path="/cerrar-sesion">
+              <Logout />
+            </Route>
           </Switch>
         </Router>
       </CartProvider>

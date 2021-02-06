@@ -92,6 +92,11 @@ function CartProvider({ children }) {
     saveCartToLocalStorage(nuevoCarrito);
   };
 
+  const limpiarCarrito = () => {
+    setCarrito([]);
+    saveCartToLocalStorage([]);
+  };
+
   const obtenerTotal = () =>
     carrito.reduce((acc, val) => acc + val.producto.precio * val.cantidad, 0);
 
@@ -101,6 +106,7 @@ function CartProvider({ children }) {
     quitarDelCarrito,
     modificarCarrito,
     obtenerTotal,
+    limpiarCarrito,
   };
 
   return (

@@ -5,6 +5,7 @@ import {
   faHome,
   faFileInvoice,
   faSignInAlt,
+  faSignOutAlt,
   faShoppingCart,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -33,7 +34,13 @@ export default function Navegacion() {
               </Link>
             </li>
           ) : null}
-          {auth.estaAutenticado() ? null : (
+          {auth.estaAutenticado() ? (
+            <li>
+              <Link to="/cerrar-sesion">
+                <FontAwesomeIcon icon={faSignOutAlt} /> Cerrar sesión
+              </Link>
+            </li>
+          ) : (
             <li>
               <Link to="/iniciar-sesion">
                 <FontAwesomeIcon icon={faSignInAlt} /> Iniciar sesión

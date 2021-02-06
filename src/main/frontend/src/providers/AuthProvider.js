@@ -48,18 +48,15 @@ function AuthProvider({ children }) {
 
   const getAuthorizationHeader = () => ({ Authorization: 'Bearer ' + token });
 
+  // Nota: manejar errores para esta función en la página de login
   const iniciarSesion = async ({ email, password }) => {
-    try {
-      const data = await authService.iniciarSesion({ email, password });
-      setUsuario(data.usuario);
-      setToken(data.token);
-      setAutenticado(true);
-      saveToLocalStorage('usuario', data.usuario);
-      saveToLocalStorage('token', data.token);
-      saveToLocalStorage('autenticado', true);
-    } catch (error) {
-      console.log(`Error al iniciar sesión: ${error}`);
-    }
+    const data = await authService.iniciarSesion({ email, password });
+    setUsuario(data.usuario);
+    setToken(data.token);
+    setAutenticado(true);
+    saveToLocalStorage('usuario', data.usuario);
+    saveToLocalStorage('token', data.token);
+    saveToLocalStorage('autenticado', true);
   };
 
   const refrescarToken = async () => {
@@ -71,6 +68,7 @@ function AuthProvider({ children }) {
       saveToLocalStorage('usuario', data.usuario);
       saveToLocalStorage('token', data.token);
       saveToLocalStorage('autenticado', true);
+      return data;
     } catch (error) {
       console.log(`Error al refrescar token: ${error}`);
     }
@@ -78,13 +76,15 @@ function AuthProvider({ children }) {
 
   const cerrarSesion = async () => {
     try {
-      await authService.cerrarSesion(getAuthorizationHeader());
-      setAutenticado(false);
-      setUsuario(null);
-      setToken(null);
-      removeFromLocalStorage('usuario');
-      removeFromLocalStorage('token');
-      removeFromLocalStorage('autenticado');
+      ejecutarConAuthHeader(async (authHeader) => {
+        await authService.cerrarSesion(authHeader);
+        setAutenticado(false);
+        setUsuario(null);
+        setToken(null);
+        removeFromLocalStorage('usuario');
+        removeFromLocalStorage('token');
+        removeFromLocalStorage('autenticado');
+      });
     } catch (error) {
       console.log('Error when logging out ' + error);
     }
@@ -102,15 +102,20 @@ function AuthProvider({ children }) {
     }
   };
 
-  const ejecutarConAuthHeader = async (cb) => {
+  const ejecutarConAuthHeader = async (callback) => {
     try {
-      return await cb(getAuthorizationHeader());
+      return await callback(getAuthorizationHeader());
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          await refrescarToken();
-          return await cb(getAuthorizationHeader());
+      console.log('Parece que el token expiro. Se hara un segundo intento');
+      try {
+        if (error.response && error.response.status === 401) {
+          const data = await refrescarToken();
+          return await callback({ Authorization: `Bearer ${data.token}` }); // Se construye el header directamente porque getAuthorizationHeader aun devuelve el token anterior
         }
+      } catch (error) {
+        console.log(
+          'Error al reintentar enviar la peticion: ' + JSON.stringify(error)
+        );
       }
     }
   };

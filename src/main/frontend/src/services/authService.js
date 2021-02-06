@@ -1,19 +1,17 @@
 import axios from 'axios';
 
-axios.defaults.baseURL = '/api/v1/auth';
-
 async function iniciarSesion({ email, password }) {
-  const result = await axios.post('/login', { email, password });
+  const result = await axios.post('/api/v1/auth/login', { email, password });
   return result.data;
 }
 
 async function refrescarToken() {
-  const result = await axios.post('/refresh');
+  const result = await axios.post('/api/v1/auth/refresh');
   return result.data;
 }
 
 async function cerrarSesion(authHeader) {
-  await axios.post('/logout', null, {
+  await axios.post('/api/v1/auth/logout', null, {
     headers: authHeader,
   });
 }

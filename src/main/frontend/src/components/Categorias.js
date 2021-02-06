@@ -34,12 +34,16 @@ export default function Categorias() {
     <div>
       <h1>Categorías</h1>
 
-      <Paginacion
-        numeroPagina={numeroPagina}
-        paginasTotales={paginasTotales}
-        avanzarPaginaHandler={avanzarPaginaHandler}
-        retrocederPaginaHandler={retrocederPaginaHandler}
-      />
+      {categorias.length > 0 ? (
+        <Paginacion
+          numeroPagina={numeroPagina}
+          paginasTotales={paginasTotales}
+          avanzarPaginaHandler={avanzarPaginaHandler}
+          retrocederPaginaHandler={retrocederPaginaHandler}
+        />
+      ) : (
+        <p>Aún no se han creado categorías.</p>
+      )}
       <ul className="list-none padding-zero">
         {categorias.map((categoria) => (
           <Categoria key={categoria.id} categoria={categoria} />

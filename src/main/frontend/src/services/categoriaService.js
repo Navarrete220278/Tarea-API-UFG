@@ -1,18 +1,16 @@
 import axios from 'axios';
 
-axios.defaults.baseURL = '/api/v1/categorias';
-
 async function obtenerCategorias(numeroPagina, filasPorPagina) {
   const result = await axios.get(
-    `/?sort=id,asc${filasPorPagina ? '&size=' + filasPorPagina : ''}${
-      numeroPagina ? '&page=' + numeroPagina : ''
-    }`
+    `/api/v1/categorias?sort=id,asc${
+      filasPorPagina ? '&size=' + filasPorPagina : ''
+    }${numeroPagina ? '&page=' + numeroPagina : ''}`
   );
   return result.data;
 }
 
 async function obtenerCategoriaPorId(idCategoria) {
-  const result = await axios.get(`/${idCategoria}`);
+  const result = await axios.get(`/api/v1/categorias/${idCategoria}`);
   return result.data;
 }
 
@@ -22,7 +20,7 @@ async function obtenerProductosDeCategoria(
   filasPorPagina
 ) {
   const result = await axios.get(
-    `/${idCategoria}/productos?sort=id,asc${
+    `/api/v1/categorias/${idCategoria}/productos?sort=id,asc${
       filasPorPagina ? '&size=' + filasPorPagina : ''
     }${numeroPagina ? '&page=' + numeroPagina : ''}`
   );
