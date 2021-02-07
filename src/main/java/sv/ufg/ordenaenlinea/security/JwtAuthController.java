@@ -1,10 +1,8 @@
 package sv.ufg.ordenaenlinea.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,8 +23,9 @@ public class JwtAuthController {
     }
 
     @PostMapping("/auth/refresh")
+    @ResponseStatus(HttpStatus.CREATED)
     public JwtAuthResponse refrescarToken(HttpServletRequest request, HttpServletResponse response) {
-       return jwtAuthService.refrescarToken(request, response);
+        return jwtAuthService.refrescarToken(request, response);
     }
 
     @PostMapping("/auth/logout")

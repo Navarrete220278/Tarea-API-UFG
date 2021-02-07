@@ -7,14 +7,14 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (!!token) {
-      config.headers['Authorization'] = 'Bearer ' + token;
+      config.headers.Authorization = 'Bearer ' + token;
     }
     config.baseURL = '/api/v1';
     // config.headers['Content-Type'] = 'application/json';
     return config;
   },
   (error) => {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 );
 
@@ -23,22 +23,23 @@ axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
-  function (error) {
+  (error) => {
+    const status = error.response ? error.response.status : null;
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      return axios.post('/api/v1/auth/refresh').then((res) => {
-        if (res.status === 201) {
+      return axiosInstance.post('/auth/refresh').then((res) => {
+        if (res.status === 200 || res.status === 201) {
           // 1) put token to LocalStorage
           console.log('Se refresco el token exitosamente');
           localStorage.setItem('token', res.data.token);
 
           // 2) Change Authorization header
-          axios.defaults.headers.common['Authorization'] =
+          axiosInstance.defaults.headers.common['Authorization'] =
             'Bearer ' + res.data.token;
 
           // 3) return originalRequest object with Axios.
-          return axios(originalRequest);
+          return axiosInstance(originalRequest);
         }
       });
     }

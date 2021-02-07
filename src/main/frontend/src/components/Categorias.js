@@ -31,7 +31,7 @@ export default function Categorias() {
   }, [numeroPagina]);
 
   return (
-    <div>
+    <>
       <h1>Categorías</h1>
 
       {categorias.length > 0 ? (
@@ -49,6 +49,6 @@ export default function Categorias() {
           <Categoria key={categoria.id} categoria={categoria} />
         ))}
       </ul>
-    </div>
+    </>
   );
 }

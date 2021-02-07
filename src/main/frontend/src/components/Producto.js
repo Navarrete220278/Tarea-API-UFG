@@ -26,7 +26,7 @@ export default function Producto({ producto }) {
         onError={(e) => (e.target.src = food)}
         alt={producto.nombre}
       />
-      <div>
+      <span>
         <p>{producto.nombre}</p>
         <h2>$ {producto.precio.toFixed(2)}</h2>
         <form>
@@ -48,7 +48,7 @@ export default function Producto({ producto }) {
             </button>
           </p>
         </form>
-      </div>
+      </span>
     </li>
   );
 }

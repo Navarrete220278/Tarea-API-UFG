@@ -10,9 +10,9 @@ export default function LineaCarrito({ producto, cantidad }) {
   };
 
   return (
-    <li className="flex-flex-start flex-flex-wrap margin-bottom-1 flex-align-stretch">
-      <div className="width-15">{producto.nombre}</div>
-      <div className="width-5 text-align-right">
+    <tr>
+      <td>{producto.nombre}</td>
+      <td>
         <form>
           <input
             className="width-5"
@@ -22,13 +22,9 @@ export default function LineaCarrito({ producto, cantidad }) {
             onChange={handleOnChange}
           />
         </form>
-      </div>
-      <div className="width-5 text-align-right">
-        $ {producto.precio.toFixed(2)}
-      </div>
-      <div className="width-5 text-align-right">
-        $ {(producto.precio * cantidad).toFixed(2)}
-      </div>
-    </li>
+      </td>
+      <td>$ {producto.precio.toFixed(2)}</td>
+      <td>$ {(producto.precio * cantidad).toFixed(2)}</td>
+    </tr>
   );
 }

@@ -11,6 +11,9 @@ import Productos from './components/Productos';
 import Carrito from './components/Carrito';
 import Login from './components/Login';
 import Logout from './components/Logout';
+import CrearOrden from './components/CrearOrden';
+import Ordenes from './components/Ordenes';
+import Registro from './components/Registro';
 
 export default function App() {
   return (
@@ -32,13 +35,16 @@ export default function App() {
               <Carrito />
             </Route>
             <RutaCliente path="/mis-ordenes">
-              <h1>Mis órdenes</h1>
+              <Ordenes />
             </RutaCliente>
             <RutaCliente path="/crear-orden">
-              <h1>Crear orden</h1>
+              <CrearOrden />
             </RutaCliente>
-            <Route path="/cerrar-sesion">
+            <RutaCliente path="/cerrar-sesion">
               <Logout />
+            </RutaCliente>
+            <Route path="/registro">
+              <Registro />
             </Route>
           </Switch>
         </Router>

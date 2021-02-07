@@ -7,7 +7,7 @@ export default function Paginacion({
   retrocederPaginaHandler,
 }) {
   return (
-    <div className="margin-bottom-1">
+    <>
       <button
         name="anterior"
         onClick={retrocederPaginaHandler}
@@ -24,6 +24,6 @@ export default function Paginacion({
       >
         Siguiente -&gt;
       </button>
-    </div>
+    </>
   );
 }

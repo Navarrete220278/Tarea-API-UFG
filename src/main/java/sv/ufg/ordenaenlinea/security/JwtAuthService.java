@@ -45,7 +45,8 @@ public class JwtAuthService {
         // Crea el refresh token y lo guarda en una cookie HTTP only
         Usuario usuario = ((JwtUserDetails) authentication.getPrincipal()).getUsuario();
         Cookie refreshTokenCookie = jwtTokenUtil.getRefreshTokenCookie(authentication.getName(), usuario.getVersionToken());
-        response.addCookie(refreshTokenCookie);
+        // response.addCookie(refreshTokenCookie); // Changed to Chrome SameSitePolicy
+        response.setHeader("Set-Cookie", obtenerCookieHeader(refreshTokenCookie));
 
         return new JwtAuthResponse(token, usuario);
     }
@@ -79,7 +80,8 @@ public class JwtAuthService {
             // Emitir un nuevo refresh token (manteniendo el número de versión)
             Cookie refreshTokenCookie = jwtTokenUtil
                     .getRefreshTokenCookie(usuario.getId().toString(), usuario.getVersionToken());
-            response.addCookie(refreshTokenCookie);
+            // response.addCookie(refreshTokenCookie); // Changed to Chrome SameSitePolicy
+            response.setHeader("Set-Cookie", obtenerCookieHeader(refreshTokenCookie));
 
             return new JwtAuthResponse(token, usuario);
         } catch (EntityNotFoundException e) {
@@ -95,6 +97,15 @@ public class JwtAuthService {
 
         // Elimino la cookie de refresh token
         Cookie nullRefreshTokenCookie = jwtTokenUtil.getNullRefreshTokenCookie();
-        response.addCookie(nullRefreshTokenCookie);
+        // response.addCookie(nullRefreshTokenCookie); // Changed to Chrome SameSitePolicy
+        response.setHeader("Set-Cookie", obtenerCookieHeader(nullRefreshTokenCookie));
+    }
+
+    public String obtenerCookieHeader(Cookie cookie) {
+        return new StringBuilder()
+                .append(cookie.getName()).append("=").append(cookie.getValue())
+                .append("; Max-Age=").append(cookie.getMaxAge())
+                .append("; Path=").append(cookie.getPath())
+                .append("; HttpOnly; SameSite=Lax").toString();
     }
 }
