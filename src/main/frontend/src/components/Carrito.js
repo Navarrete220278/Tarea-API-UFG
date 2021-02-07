@@ -30,6 +30,9 @@ export default function Carrito() {
               <LineaCarrito key={linea.producto.id} {...linea} />
             ))}
           </ul>
+          <Link className="button-link margin-right-1" to="/">
+            Seguir comprando
+          </Link>
           <Link className="button-link" to="/crear-orden">
             Enviar mi orden
           </Link>

@@ -1,121 +1,76 @@
 import React, { useState, createContext, useContext } from 'react';
 
-const CartConext = createContext();
+const CartContext = createContext();
 
-function loadCartFromLocalStorage() {
-  const cart = localStorage.getItem('carrito');
-  if (cart) {
-    try {
-      const parsedCart = JSON.parse(cart);
-      return parsedCart;
-    } catch (error) {
-      console.log('Error when loading shopping cart from disk ' + error);
-    }
-  }
+const useCart = () => useContext(CartContext);
 
-  return [];
-}
-
-function saveCartToLocalStorage(cart) {
-  if (cart !== null && typeof cart === 'object') {
-    try {
-      const stringifiedCart = JSON.stringify(cart);
-      localStorage.setItem('carrito', stringifiedCart);
-    } catch (error) {
-      console.log('Error when saving shopping cart to disk ' + error);
-    }
-  }
-}
-
-function CartProvider({ children }) {
-  const [carrito, setCarrito] = useState(loadCartFromLocalStorage());
+const useProvideCart = () => {
+  const [carrito, setCarrito] = useState(
+    () => JSON.parse(localStorage.getItem('carrito')) || []
+  );
 
   const agregarAlCarrito = (producto, cantidad) => {
-    let nuevoCarrito;
-
-    // ¿Existe el producto en el carrito?
     const indice = carrito.findIndex(
-      (linea) => linea.producto.id === producto.id
+      (linea) => !!linea.producto && linea.producto.id === producto.id
     );
-
-    if (indice !== -1) {
+    let nuevoCarrito;
+    if (indice === -1) nuevoCarrito = [...carrito, { producto, cantidad }];
+    else
       nuevoCarrito = carrito.map((linea) =>
-        linea.producto.id === producto.id
+        !!linea.producto && linea.producto.id === producto.id
           ? { producto, cantidad: linea.cantidad + cantidad }
           : linea
       );
-    } else {
-      nuevoCarrito = [...carrito, { producto, cantidad }];
-    }
-
     setCarrito(nuevoCarrito);
-    saveCartToLocalStorage(nuevoCarrito);
+    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
   };
 
   const quitarDelCarrito = (idProducto) => {
-    // ¿Existe el producto en el carrito?
-    const indice = carrito.findIndex(
-      (linea) => linea.producto.id === idProducto
-    );
-
-    // Si el producto no existe, ignorar la petición
-    if (indice === -1) return;
-
     const nuevoCarrito = carrito.filter(
-      (linea) => linea.producto.id !== idProducto
+      (linea) => !!linea.producto && linea.producto.id !== idProducto
     );
-
     setCarrito(nuevoCarrito);
-    saveCartToLocalStorage(nuevoCarrito);
+    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
   };
 
   const modificarCarrito = (idProducto, cantidad) => {
-    // ¿Existe el producto en el carrito?
-    const indice = carrito.findIndex(
-      (linea) => linea.producto.id === idProducto
-    );
-
-    // Si el producto no existe, ignorar la petición
-    if (indice === -1) return;
-
-    // Si la nueva cantidad es cero, quitar el producto del carrito
     if (cantidad === 0) return quitarDelCarrito(idProducto);
 
-    // Modificar el carrito
     const nuevoCarrito = carrito.map((linea) =>
-      linea.producto.id === idProducto
+      !!linea.producto && linea.producto.id === idProducto
         ? { producto: linea.producto, cantidad }
         : linea
     );
 
     setCarrito(nuevoCarrito);
-    saveCartToLocalStorage(nuevoCarrito);
+    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
+  };
+
+  const obtenerTotal = () => {
+    return carrito.reduce(
+      (acc, val) => acc + val.producto.precio * val.cantidad,
+      0
+    );
   };
 
   const limpiarCarrito = () => {
     setCarrito([]);
-    saveCartToLocalStorage([]);
+    localStorage.removeItem('carrito');
   };
 
-  const obtenerTotal = () =>
-    carrito.reduce((acc, val) => acc + val.producto.precio * val.cantidad, 0);
-
-  const shoppingCart = {
+  return {
     carrito,
     agregarAlCarrito,
-    quitarDelCarrito,
     modificarCarrito,
-    obtenerTotal,
+    quitarDelCarrito,
     limpiarCarrito,
+    obtenerTotal,
   };
+};
 
-  return (
-    <CartConext.Provider value={shoppingCart}>{children}</CartConext.Provider>
-  );
+function CartProvider({ children }) {
+  const cart = useProvideCart();
+  return <CartContext.Provider value={cart}>{children}</CartContext.Provider>;
 }
 
-function useCart() {
-  return useContext(CartConext);
-}
-
-export { CartProvider, useCart };
+export { useCart, CartProvider };

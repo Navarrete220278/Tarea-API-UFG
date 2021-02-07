@@ -1,24 +1,16 @@
-import axios from 'axios';
+import axiosInstance from './axiosInstance';
 
 async function iniciarSesion({ email, password }) {
-  const result = await axios.post('/api/v1/auth/login', { email, password });
+  const result = await axiosInstance.post('/auth/login', { email, password });
   return result.data;
 }
 
-async function refrescarToken() {
-  const result = await axios.post('/api/v1/auth/refresh');
-  return result.data;
-}
-
-async function cerrarSesion(authHeader) {
-  await axios.post('/api/v1/auth/logout', null, {
-    headers: authHeader,
-  });
+async function cerrarSesion() {
+  await axiosInstance.post('/auth/logout');
 }
 
 const authService = {
   iniciarSesion,
-  refrescarToken,
   cerrarSesion,
 };
 

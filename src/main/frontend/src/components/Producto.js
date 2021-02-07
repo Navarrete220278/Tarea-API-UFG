@@ -41,7 +41,7 @@ export default function Producto({ producto }) {
           <p>
             <button
               type="submit"
-              disabled={cantidad < 1}
+              disabled={isNaN(cantidad) || cantidad < 1}
               onClick={onClickHandler}
             >
               <FontAwesomeIcon icon={faCartPlus} /> Agregar al carrito

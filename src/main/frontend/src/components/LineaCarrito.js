@@ -5,7 +5,8 @@ export default function LineaCarrito({ producto, cantidad }) {
   const cart = useCart();
 
   const handleOnChange = (event) => {
-    cart.modificarCarrito(producto.id, parseInt(event.target.value));
+    if (event.target.value)
+      cart.modificarCarrito(producto.id, parseInt(event.target.value));
   };
 
   return (

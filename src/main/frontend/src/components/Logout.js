@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useAuth } from '../providers/AuthProvider';
 
 export default function Logout() {
-  const [control, setControl] = useState(true);
   const auth = useAuth();
-  if (auth.estaAutenticado() && control) {
-    auth.cerrarSesion().then(console.log('Logged out'));
-    setControl(false);
-  }
+  useEffect(() => {
+    auth.cerrarSesion();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <Redirect to="/" />;
+  if (auth.estaAutenticado())
+    return <p>Espere un momento mientras cerramos su sesión...</p>;
+  else return <Redirect to="/" />;
 }
