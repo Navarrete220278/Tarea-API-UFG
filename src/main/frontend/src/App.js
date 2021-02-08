@@ -15,6 +15,7 @@ import CrearOrden from './components/CrearOrden';
 import Ordenes from './components/Ordenes';
 import Registro from './components/Registro';
 import DetalleOrden from './components/DetalleOrden';
+import Perfil from './components/Perfil';
 
 export default function App() {
   return (
@@ -49,6 +50,9 @@ export default function App() {
             </Route>
             <RutaCliente path="/ordenes/:idOrden">
               <DetalleOrden />
+            </RutaCliente>
+            <RutaCliente path="/mi-perfil">
+              <Perfil />
             </RutaCliente>
           </Switch>
         </Router>

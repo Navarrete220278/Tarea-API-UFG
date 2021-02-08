@@ -7,6 +7,7 @@ import {
   faSignInAlt,
   faSignOutAlt,
   faShoppingCart,
+  faUserAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { useAuth } from '../providers/AuthProvider';
@@ -47,6 +48,13 @@ export default function Navegacion() {
               </Link>
             </li>
           )}
+          {auth.estaAutenticado() ? (
+            <li>
+              <Link to="/mi-perfil">
+                <FontAwesomeIcon icon={faUserAlt} /> Mi Perfil
+              </Link>
+            </li>
+          ) : null}
           <li>
             <Link to="/carrito">
               <FontAwesomeIcon icon={faShoppingCart} /> Carrito (${' '}
