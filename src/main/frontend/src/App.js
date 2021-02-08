@@ -14,6 +14,7 @@ import Logout from './components/Logout';
 import CrearOrden from './components/CrearOrden';
 import Ordenes from './components/Ordenes';
 import Registro from './components/Registro';
+import DetalleOrden from './components/DetalleOrden';
 
 export default function App() {
   return (
@@ -35,7 +36,7 @@ export default function App() {
               <Carrito />
             </Route>
             <RutaCliente path="/mis-ordenes">
-              <Ordenes />
+              <Ordenes idUsuario />
             </RutaCliente>
             <RutaCliente path="/crear-orden">
               <CrearOrden />
@@ -46,6 +47,9 @@ export default function App() {
             <Route path="/registro">
               <Registro />
             </Route>
+            <RutaCliente path="/ordenes/:idOrden">
+              <DetalleOrden />
+            </RutaCliente>
           </Switch>
         </Router>
       </CartProvider>

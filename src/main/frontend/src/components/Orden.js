@@ -1,6 +1,8 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 
-export default function Orden({ orden }) {
+export default function Orden({ orden, cancelarOrden }) {
+  const history = useHistory();
   return (
     <tr>
       <td>{orden.id}</td>
@@ -12,6 +14,28 @@ export default function Orden({ orden }) {
         {orden.detalles
           .reduce((acc, val) => acc + val.cantidad * val.precio, 0)
           .toFixed(2)}
+      </td>
+      <td>
+        <form>
+          <button
+            onClick={(event) => {
+              event.preventDefault();
+              history.push(`/ordenes/${orden.id}`);
+            }}
+          >
+            Detalles
+          </button>
+          {orden.estado === 'PENDIENTE' ? (
+            <button
+              onClick={async (event) => {
+                event.preventDefault();
+                await cancelarOrden(orden.id);
+              }}
+            >
+              Cancelar
+            </button>
+          ) : null}
+        </form>
       </td>
     </tr>
   );

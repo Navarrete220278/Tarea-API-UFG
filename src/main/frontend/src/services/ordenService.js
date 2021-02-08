@@ -17,9 +17,22 @@ async function obtenerOrdenes(idUsuario, numeroPagina, filasPorPagina) {
   return result.data;
 }
 
+async function cancelarOrden(idUsuario, idOrden) {
+  await axiosInstance.delete(`/usuarios/${idUsuario}/ordenes/${idOrden}`);
+}
+
+async function obtenerOrdenPorUsuarioYId(idUsuario, idOrden) {
+  const result = await axiosInstance.get(
+    `/usuarios/${idUsuario}/ordenes/${idOrden}`
+  );
+  return result.data;
+}
+
 const ordenService = {
   crearOrden,
   obtenerOrdenes,
+  cancelarOrden,
+  obtenerOrdenPorUsuarioYId,
 };
 
 export default ordenService;

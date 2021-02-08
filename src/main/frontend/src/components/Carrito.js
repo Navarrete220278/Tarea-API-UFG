@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { useCart } from '../providers/CartProvider';
 import LineaCarrito from './LineaCarrito';
 
 export default function Carrito() {
   const cart = useCart();
+  const history = useHistory();
 
   return (
     <>
@@ -30,12 +31,22 @@ export default function Carrito() {
             El total de su orden es{' '}
             <strong>$ {cart.obtenerTotal().toFixed(2)}</strong>
           </p>
-          <Link className="button-link margin-right-1" to="/">
+          <button
+            onClick={(event) => {
+              event.preventDefault();
+              history.push('/');
+            }}
+          >
             Seguir comprando
-          </Link>
-          <Link className="button-link" to="/crear-orden">
+          </button>
+          <button
+            onClick={(event) => {
+              event.preventDefault();
+              history.push('/crear-orden');
+            }}
+          >
             Enviar mi orden
-          </Link>
+          </button>
         </>
       ) : (
         <p>

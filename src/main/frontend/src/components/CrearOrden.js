@@ -39,8 +39,6 @@ export default function CrearOrden() {
       orden.fechaSolicitada = fechaSolicitada;
     }
 
-    console.log(JSON.stringify(orden));
-
     try {
       const data = await ordenService.crearOrden(idUsuario, orden);
       cart.limpiarCarrito();

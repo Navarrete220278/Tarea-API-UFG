@@ -9,6 +9,7 @@ export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
   const [numeroPagina, setNumeroPagina] = useState(0);
   const [paginasTotales, setPaginasTotales] = useState(0);
+  const [contador, setContador] = useState(0);
 
   const avanzarPaginaHandler = () => {
     setNumeroPagina(numeroPagina + 1);
@@ -16,6 +17,12 @@ export default function Ordenes() {
 
   const retrocederPaginaHandler = () => {
     setNumeroPagina(numeroPagina - 1);
+  };
+
+  const cancelarOrden = async (idOrden) => {
+    await ordenService.cancelarOrden(auth.usuario.id, idOrden);
+    console.log(`Orden ${idOrden} cancelada`);
+    setContador(contador + 1); // Triggers a data refetch
   };
 
   useEffect(() => {
@@ -33,7 +40,7 @@ export default function Ordenes() {
     };
 
     obtenerOrdenes();
-  }, [numeroPagina, auth]);
+  }, [numeroPagina, auth.usuario.id, contador]);
 
   return (
     <>
@@ -56,11 +63,12 @@ export default function Ordenes() {
             <th>Fecha solicitada</th>
             <th>Estado</th>
             <th>Monto</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {ordenes.map((orden) => (
-            <Orden key={orden.id} orden={orden} />
+            <Orden key={orden.id} orden={orden} cancelarOrden={cancelarOrden} />
           ))}
         </tbody>
       </table>
