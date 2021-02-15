@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +20,6 @@ public class OrdenRequest {
         private Integer cantidad;
     }
 
-    private LocalDateTime fechaSolicitada;
+    private OffsetDateTime fechaSolicitada;
     private List<Linea> lineas = new ArrayList<>();
 }

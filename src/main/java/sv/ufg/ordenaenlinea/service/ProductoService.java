@@ -108,7 +108,7 @@ public class ProductoService {
         // Guardar imagen en S3 y actualizar ruta en el producto
         String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, producto.getUrlImagen());
 
-        if (modificacionUtil.textoHaSidoModificado(producto.getUrlImagen(), nombreArchivoNuevo)) {
+        if (modificacionUtil.textoHaSidoModificado(nombreArchivoNuevo, producto.getUrlImagen())) {
             producto.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
             productoRepository.save(producto);
         }

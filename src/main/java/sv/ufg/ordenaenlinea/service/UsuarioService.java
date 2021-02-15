@@ -122,7 +122,7 @@ public class UsuarioService {
         // Guardar imagen en S3 y actualizar ruta en el usuario
         String nombreArchivoNuevo = archivoRepository.subir(archivo, CARPETA, usuario.getUrlImagen());
 
-        if (modificacionUtil.textoHaSidoModificado(usuario.getUrlImagen(), nombreArchivoNuevo)) {
+        if (modificacionUtil.textoHaSidoModificado(nombreArchivoNuevo, usuario.getUrlImagen())) {
             usuario.setUrlImagen(nombreArchivoNuevo); // Actualizar la URL de la imagen
             usuarioRepository.save(usuario);
         }

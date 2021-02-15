@@ -19,8 +19,8 @@ public class JwtTokenUtil {
     @Value("${app.security.jwt.refresh-token.secret}")
     private String tokenSecret;
 
-    @Value("${app.security.jwt.token.minutes}")
-    private Long tokenMinutes;
+    @Value("${app.security.jwt.token.seconds}")
+    private Long tokenSeconds;
 
     @Value("${app.security.jwt.refresh-token.secret}")
     private String refreshTokenSecret;
@@ -46,7 +46,7 @@ public class JwtTokenUtil {
     public String generateToken(String subject, Object authorities) {
         return Jwts.builder().setSubject(subject)
                 .claim("authorities", authorities)
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * tokenMinutes))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * tokenSeconds))
                 .signWith(Keys.hmacShaKeyFor(tokenSecret.getBytes()))
                 .compact();
     }

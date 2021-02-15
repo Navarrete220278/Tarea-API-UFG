@@ -1,6 +1,5 @@
 package sv.ufg.ordenaenlinea.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,6 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,12 +24,12 @@ public class Orden {
     private Usuario usuario;
 
     @NotNull
-    @Column(nullable = false)
-    private LocalDateTime fechaCreada;
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime fechaCreada;
 
     @NotNull
-    @Column(nullable = false)
-    private LocalDateTime fechaSolicitada;
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime fechaSolicitada;
 
     @NotNull
     @Enumerated(EnumType.STRING)

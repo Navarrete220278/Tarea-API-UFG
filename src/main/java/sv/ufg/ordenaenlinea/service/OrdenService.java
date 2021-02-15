@@ -13,6 +13,7 @@ import sv.ufg.ordenaenlinea.request.OrdenRequest;
 import javax.persistence.EntityNotFoundException;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,14 +54,14 @@ public class OrdenService {
         // Configurar detalles generales de la orden
         Orden orden = new Orden();
         orden.setUsuario(usuario);
-        LocalDateTime ahora = LocalDateTime.now();
+        OffsetDateTime ahora = OffsetDateTime.now();
         orden.setFechaCreada(ahora);
 
         // El tiempo mininmo de entrega es 30 mins, aunque el usuario puede especificar
         // una hora especifica, siempre que sea posterior al tiempo mínimo de entrega.
         // Si el tiempo de entrega es muy corto, se reemplaza con el tiempo mínimo
-        LocalDateTime fechaMinima = ahora.plusMinutes(tiempoEntrgaMinimoMinutos);
-        LocalDateTime fechaSolicitada = ordenRequest.getFechaSolicitada();
+        OffsetDateTime fechaMinima = ahora.plusMinutes(tiempoEntrgaMinimoMinutos);
+        OffsetDateTime fechaSolicitada = ordenRequest.getFechaSolicitada();
         if (fechaSolicitada != null) {
             orden.setFechaSolicitada(fechaSolicitada.isBefore(fechaMinima) ? fechaMinima : fechaSolicitada);
         } else {
@@ -157,7 +158,7 @@ public class OrdenService {
 
     private OrdenHistorial crearEntradaHistorial(Usuario usuario, Orden orden, Estado estado, String comentario) {
         OrdenHistorial ordenHistorial = new OrdenHistorial();
-        ordenHistorial.setFecha(LocalDateTime.now());
+        ordenHistorial.setFecha(OffsetDateTime.now());
         ordenHistorial.setOrden(orden);
         ordenHistorial.setEstado(estado);
         ordenHistorial.setUsuario(usuario);

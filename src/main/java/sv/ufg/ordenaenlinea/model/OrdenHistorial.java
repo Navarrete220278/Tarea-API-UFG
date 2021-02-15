@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(
@@ -30,8 +30,8 @@ public class OrdenHistorial {
     @JsonIgnore
     private Orden orden;
 
-    @Column(nullable = false)
-    private LocalDateTime fecha;
+    @Column(nullable = false, columnDefinition = "timestamp with time zone")
+    private OffsetDateTime fecha;
 
     @NotNull
     @Column(nullable = false)
