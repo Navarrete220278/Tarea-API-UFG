@@ -20,7 +20,7 @@ spring.servlet.multipart.max-file-size=1MB
 # Application options
 app.delivery.tiempo-minutos=30
 app.security.jwt.token.secret=
-app.security.jwt.token.minutes=15
+app.security.jwt.token.seconds=900
 app.security.jwt.refresh-token.secret=
 app.security.jwt.refresh-token.days=10
 app.security.jwt.refresh-token.cookie-name=
